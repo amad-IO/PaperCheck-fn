@@ -1,0 +1,57 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply text-slate-900 font-sans antialiased min-h-screen selection:bg-brand-100 selection:text-brand-700;
+    background-color: #EDEAE4;
+    background-image: 
+      radial-gradient(at 15% 15%, rgba(245, 168, 123, 0.25) 0px, transparent 60%),
+      radial-gradient(at 85% 20%, rgba(220, 229, 236, 0.45) 0px, transparent 65%),
+      radial-gradient(at 50% 80%, rgba(245, 240, 235, 0.7) 0px, transparent 75%),
+      linear-gradient(to bottom, #F4F1EC 0%, #E9E6DF 100%);
+  }
+}
+
+/* Frosted Glass Acrylic from Reference Screenshot */
+.acrylic-card {
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  border: 1px solid rgba(255, 255, 255, 0.88);
+}
+
+.inner-acrylic {
+  background: rgba(255, 255, 255, 0.58);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+}
+
+/* Spline Wave Animation */
+@keyframes dash {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.spline-path {
+  stroke-dasharray: 600;
+  stroke-dashoffset: 600;
+  animation: dash 2.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
+}

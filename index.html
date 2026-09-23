@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Metriqs | AntiCheat Protocol</title>
+    <!-- Fonts: Inter & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#E48B59',
+                        secondary: '#ED7B46',
+                        accent: '#ED7B46',
+                        background: '#FFFFFF',
+                        surface: '#53617A',
+                        'surface-dark': '#2D3748',
+                        'card-peach': '#F5A87B',
+                        'card-orange': '#ED7B46',
+                        'card-slate': '#3D4A60',
+                        'card-ice': '#DCE5EC',
+                        'text-primary': '#111827',
+                        'text-secondary': '#4B5563',
+                        border: '#D8DADF'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace'],
+                    },
+                    borderRadius: {
+                        'card': '24px',
+                        'control': '8px',
+                        'pill': '9999px'
+                    },
+                    boxShadow: {
+                        'neu-card': '0 20px 40px -15px rgba(0, 0, 0, 0.08), 0 0 1px 1px rgba(0, 0, 0, 0.04)',
+                        'neu-card-center': '0 30px 60px -12px rgba(45, 55, 72, 0.18), 0 18px 36px -18px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(255, 255, 255, 0.8) inset',
+                        'neu-button': '0 4px 14px 0 rgba(237, 123, 70, 0.35)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #EDEAE4;
+            background-image: 
+                radial-gradient(at 15% 15%, rgba(245, 168, 123, 0.25) 0px, transparent 60%),
+                radial-gradient(at 85% 20%, rgba(220, 229, 236, 0.45) 0px, transparent 65%),
+                radial-gradient(at 50% 80%, rgba(245, 240, 235, 0.7) 0px, transparent 75%),
+                linear-gradient(to bottom, #F4F1EC 0%, #E9E6DF 100%);
+            color: #111827;
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Frosted Glass Neuform Acrylic */
+        .acrylic-card {
+            background: rgba(255, 255, 255, 0.78);
+            backdrop-filter: blur(28px);
+            -webkit-backdrop-filter: blur(28px);
+            border: 1px solid rgba(255, 255, 255, 0.85);
+        }
+
+        .inner-acrylic {
+            background: rgba(255, 255, 255, 0.55);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.75);
+        }
+
+        /* Spline Curve Animation */
+        @keyframes dash {
+            to {
+                stroke-dashoffset: 0;
+            }
+        }
+        .spline-path {
+            stroke-dasharray: 600;
+            stroke-dashoffset: 600;
+            animation: dash 2.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        /* Card Perspective Fan effect */
+        .card-stack-container {
+            perspective: 1200px;
+        }
+
+        /* Toast Animation */
+        .toast-box {
+            transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            opacity: 0;
+            transform: translateY(20px) scale(0.96);
+            pointer-events: none;
+        }
+        .toast-box.show {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            pointer-events: auto;
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center">
+
+    <!-- Minimal Top Navbar -->
+    <header class="w-full max-w-[1240px] px-6 py-5 flex items-center justify-between z-30">
+        <!-- Brand -->
+        <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-secondary to-primary flex items-center justify-center shadow-md shadow-secondary/20 text-white font-bold text-sm">
+                <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+            </div>
+            <div>
+                <span class="text-base font-semibold tracking-tight text-text-primary">System Metriqs</span>
+                <span class="text-xs text-text-secondary font-mono ml-1.5 hidden sm:inline-block">/ AntiCheat Protocol</span>
+            </div>
+        </div>
+
+        <!-- Controls: Network & Wallet & Role Switcher -->
+        <div class="flex items-center gap-3">
+            <!-- BOT Chain Status -->
+            <div id="network-status" class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/80 border border-border text-xs font-mono text-text-secondary shadow-sm">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span class="font-medium text-text-primary">BOT Chain</span>
+                <span class="text-text-secondary/60 font-semibold">•</span>
+                <span>968</span>
+            </div>
+
+            <!-- Demo Role Toggle -->
+            <button id="toggle-jury-btn" title="Toggle Jury view vs Participant view" class="flex items-center gap-1.5 px-3 py-1.5 rounded-pill bg-white/80 hover:bg-white border border-border text-xs font-medium text-text-secondary transition-all shadow-sm">
+                <span class="text-secondary font-semibold">Role:</span>
+                <span id="jury-toggle-label" class="text-text-primary font-mono text-[11px]">Participant</span>
+            </button>
+
+            <!-- Connect Wallet Button -->
+            <button id="connect-btn" class="px-5 py-2 rounded-pill bg-secondary hover:bg-opacity-95 text-white text-xs font-semibold shadow-neu-button transition-all transform active:scale-95 flex items-center gap-2">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                </svg>
+                Connect Wallet
+            </button>
+
+            <!-- Wallet Connected Badge -->
+            <div id="wallet-info" class="hidden items-center gap-2 px-3.5 py-1.5 rounded-pill bg-white border border-border shadow-sm">
+                <span id="role-badge" class="hidden px-2 py-0.5 text-[10px] font-mono font-bold tracking-wider rounded-full bg-purple-100 text-purple-700 border border-purple-200">
+                    JURY
+                </span>
+                <span id="wallet-address" class="font-mono text-xs font-semibold text-text-primary">0x...</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="w-full max-w-[1240px] px-6 py-6 flex flex-col items-center">
+
+        <!-- Hero Heading (Directly matching reference image) -->
+        <section class="text-center max-w-2xl mx-auto mb-10 pt-4">
+            <h1 class="text-4xl sm:text-5xl lg:text-[56px] font-medium text-text-primary tracking-tight leading-[1.08] mb-3.5">
+                System Metriqs
+            </h1>
+            <p class="text-text-secondary text-sm sm:text-base leading-relaxed max-w-xl mx-auto font-normal">
+                Real-time mapping of data streams and architectural consolidation. Designed for absolute clarity.
+            </p>
+
+            <!-- Quick Presets for Demo -->
+            <div class="mt-5 flex flex-wrap items-center justify-center gap-2 text-xs">
+                <span class="text-text-secondary/70 font-mono text-[11px]">Presets:</span>
+                <button id="demo-clean-btn" class="px-3 py-1 rounded-pill bg-white/90 hover:bg-white border border-border text-emerald-700 text-xs font-medium shadow-sm transition-all">
+                    Clean Project
+                </button>
+                <button id="demo-winner-btn" class="px-3 py-1 rounded-pill bg-white/90 hover:bg-white border border-border text-secondary text-xs font-medium shadow-sm transition-all">
+                    Flagged Winner
+                </button>
+                <button id="demo-clear-btn" class="px-2.5 py-1 rounded-pill bg-white/70 hover:bg-white border border-border text-text-secondary text-xs transition-all">
+                    Reset
+                </button>
+            </div>
+        </section>
+
+        <!-- Ecosystem Visualization: Stacked Cards Showcase (Recreating the image) -->
+        <section class="w-full relative py-6 flex flex-col items-center">
+            
+            <!-- Cards Fan-Out Stage -->
+            <div class="relative w-full max-w-[1000px] h-[520px] sm:h-[560px] flex items-center justify-center">
+
+                <!-- CARD 1 (Far Left: Peach Card - Fodlecte / Protocol Telemetry) -->
+                <div class="absolute left-2 sm:left-6 md:left-14 w-[240px] sm:w-[260px] h-[400px] rounded-[24px] bg-[#F5A87B] p-6 text-white shadow-neu-card transform -rotate-[6deg] translate-y-3 hover:-translate-y-1 transition-all duration-300 hidden lg:flex flex-col justify-between select-none">
+                    <div>
+                        <div class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center mb-6">
+                            <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-bold mb-2">Fodlecte</h3>
+                        <p class="text-white/80 text-xs leading-relaxed mb-6">
+                            Total telemetry mappings registered across BOT Chain network.
+                        </p>
+                        
+                        <div class="space-y-3">
+                            <div class="bg-white/15 rounded-xl p-3">
+                                <div class="text-[11px] text-white/70 font-mono">Total Hash</div>
+                                <div class="text-2xl font-bold font-mono" id="metric-total-hash">1,245</div>
+                            </div>
+                            <div class="bg-white/15 rounded-xl p-3">
+                                <div class="text-[11px] text-white/70 font-mono">Global Events</div>
+                                <div class="text-xl font-bold font-mono" id="metric-events">15</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-1.5 text-white/60">
+                        <span class="w-2 h-2 rounded-full bg-white"></span>
+                        <span class="text-[10px] font-mono">LIVE FEED</span>
+                    </div>
+                </div>
+
+                <!-- CARD 2 (Middle Left: Terracotta Orange - Heschins / Winner Stats) -->
+                <div class="absolute left-10 sm:left-24 md:left-32 w-[250px] sm:w-[270px] h-[440px] rounded-[24px] bg-[#E06336] p-6 text-white shadow-neu-card transform -rotate-[3deg] translate-y-2 hover:-translate-y-1 transition-all duration-300 hidden md:flex flex-col justify-between select-none">
+                    <div>
+                        <h3 class="text-2xl font-bold mb-2">Heschins</h3>
+                        <p class="text-white/80 text-xs leading-relaxed mb-6">
+                            Duplicate detection & confirmed winning repositories registry.
+                        </p>
+                        
+                        <!-- Equalizer Bar Chart from image -->
+                        <div class="flex items-end justify-between h-24 px-2 py-3 bg-black/10 rounded-xl mb-6">
+                            <div class="w-3 bg-white/90 rounded-full h-[45%]"></div>
+                            <div class="w-3 bg-white/90 rounded-full h-[75%]"></div>
+                            <div class="w-3 bg-white/90 rounded-full h-[100%]"></div>
+                            <div class="w-3 bg-white/90 rounded-full h-[60%]"></div>
+                            <div class="w-3 bg-white/90 rounded-full h-[85%]"></div>
+                            <div class="w-3 bg-white/90 rounded-full h-[40%]"></div>
+                        </div>
+
+                        <div class="space-y-2">
+                            <div class="w-full py-2 px-3 rounded-full bg-white/15 text-center text-xs font-semibold">
+                                Confirmed: <span id="metric-winners" class="font-mono font-bold">42</span>
+                            </div>
+                            <div class="w-full py-2 px-3 rounded-full bg-white/10 text-center text-xs font-semibold text-white/80">
+                                Revert Protocol Active
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-[10px] font-mono text-white/60 text-center">• • •</div>
+                </div>
+
+                <!-- CARD 4 (Middle Right: Deep Slate/Navy - ertads / Security & State) -->
+                <div class="absolute right-10 sm:right-24 md:right-32 w-[250px] sm:w-[270px] h-[440px] rounded-[24px] bg-[#3D4A60] p-6 text-white shadow-neu-card transform rotate-[3deg] translate-y-2 hover:-translate-y-1 transition-all duration-300 hidden md:flex flex-col justify-between select-none">
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="text-xs font-mono text-white/60">INTEGRITY</span>
+                            <span class="text-xs text-white/60">• •</span>
+                        </div>
+                        <h3 class="text-2xl font-bold mb-2">ertads</h3>
+                        <p class="text-white/70 text-xs leading-relaxed mb-6">
+                            Decentralized validation matrix for hackathon integrity assurance.
+                        </p>
+
+                        <div class="bg-black/20 rounded-xl p-4 space-y-3 mb-6">
+                            <div class="flex justify-between items-center text-xs">
+                                <span class="text-white/70">Revert Prevention</span>
+                                <span class="font-mono font-bold text-emerald-400">100%</span>
+                            </div>
+                            <div class="flex justify-between items-center text-xs">
+                                <span class="text-white/70">Gas Efficiency</span>
+                                <span class="font-mono font-bold text-white">99.4%</span>
+                            </div>
+                            <div class="w-full bg-white/10 rounded-full h-1.5 overflow-hidden">
+                                <div class="bg-secondary h-full rounded-full w-[88%]"></div>
+                            </div>
+                        </div>
+
+                        <div class="py-2.5 px-4 rounded-xl bg-white/10 text-center text-xs font-semibold">
+                            Smart Contract v1.4
+                        </div>
+                    </div>
+                    <div class="text-[10px] font-mono text-white/50 text-right">0x968...BOT</div>
+                </div>
+
+                <!-- CARD 5 (Far Right: Ice Blue / Light Slate Card - Profile / Quick Audit) -->
+                <div class="absolute right-2 sm:right-6 md:right-14 w-[240px] sm:w-[260px] h-[400px] rounded-[24px] bg-[#DCE5EC] p-6 text-[#2D3748] shadow-neu-card transform rotate-[6deg] translate-y-3 hover:-translate-y-1 transition-all duration-300 hidden lg:flex flex-col justify-between select-none">
+                    <div>
+                        <div class="flex items-center justify-end mb-4">
+                            <div class="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm">
+                                <svg class="w-4 h-4 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </div>
+                        </div>
+                        <h3 class="text-xl font-bold mb-2 text-slate-800">Registry</h3>
+                        <p class="text-slate-600 text-xs leading-relaxed mb-6">
+                            Immutable cryptographic fingerprints on BOT Chain ledger.
+                        </p>
+                        
+                        <div class="space-y-2">
+                            <div class="p-2.5 bg-white/80 rounded-xl text-[11px] font-mono shadow-sm">
+                                <div class="text-slate-400 text-[9px]">LAST HASH</div>
+                                <div class="font-bold truncate text-slate-800">0x6b86b...5b4b</div>
+                            </div>
+                            <div class="p-2.5 bg-white/80 rounded-xl text-[11px] font-mono shadow-sm">
+                                <div class="text-slate-400 text-[9px]">BLOCK STATUS</div>
+                                <div class="font-bold text-emerald-600">● Finalized</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between text-slate-400">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                        <span class="text-[10px] font-mono">JURY #01</span>
+                    </div>
+                </div>
+
+                <!-- CARD 3 (FRONT & CENTER: Frosted Glass Acrylic - Vosging / Core Verification Console) -->
+                <div id="center-console-card" class="relative z-20 w-full max-w-[380px] sm:max-w-[420px] rounded-[32px] acrylic-card p-6 sm:p-7 shadow-neu-card-center flex flex-col justify-between transition-all duration-300">
+                    <div>
+                        <!-- Top Icon Row from image -->
+                        <div class="flex items-center justify-between mb-5">
+                            <div class="w-10 h-10 rounded-2xl bg-white/80 border border-white/90 flex items-center justify-center shadow-sm">
+                                <svg class="w-5 h-5 text-text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                            </div>
+                            <button id="clear-input-btn" class="w-8 h-8 rounded-full bg-white/60 hover:bg-white flex items-center justify-center text-text-secondary transition-all shadow-sm">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        <!-- Card Heading & Subtitle -->
+                        <div class="mb-5">
+                            <h2 class="text-2xl sm:text-3xl font-bold text-text-primary tracking-tight">Vosging</h2>
+                            <p class="text-text-secondary text-xs sm:text-[13px] leading-relaxed mt-1.5 font-normal">
+                                Real-time SHA-256 integrity mapping. Verify repository originality before on-chain submission.
+                            </p>
+                        </div>
+
+                        <!-- Inner Acrylic Chart & Input Box (From OS Graph in image) -->
+                        <div class="inner-acrylic rounded-[22px] p-4 shadow-sm mb-5 relative overflow-hidden">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs font-bold text-text-primary uppercase tracking-wider font-mono">OS Registry</span>
+                                <div class="w-6 h-6 rounded-lg bg-white/70 flex items-center justify-center">
+                                    <svg class="w-3.5 h-3.5 text-text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                                    </svg>
+                                </div>
+                            </div>
+
+                            <!-- Input Box for Repository -->
+                            <div class="mt-2 mb-3">
+                                <label class="block text-[11px] font-mono text-text-secondary font-medium mb-1.5">GitHub Repository URL</label>
+                                <div class="relative">
+                                    <input type="url" id="repo-url" 
+                                        class="w-full bg-white/90 border border-border/80 rounded-xl py-2.5 px-3 text-xs font-mono text-text-primary placeholder-text-secondary/50 focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary transition-all shadow-inner"
+                                        placeholder="https://github.com/org/repo">
+                                </div>
+                            </div>
+
+                            <!-- Spline Wave Graph Simulation with Hash Output -->
+                            <div class="relative h-14 w-full flex items-center justify-center">
+                                <!-- SVG Spline Wave matching image -->
+                                <svg class="w-full h-full absolute inset-0" viewBox="0 0 300 60" fill="none" preserveAspectRatio="none">
+                                    <path class="spline-path" d="M0,35 Q40,48 80,30 T160,20 T240,45 T300,25" stroke="#ED7B46" stroke-width="2.5" fill="none" />
+                                    <!-- Nodes from image -->
+                                    <circle cx="80" cy="30" r="4" fill="#FFFFFF" stroke="#ED7B46" stroke-width="2" />
+                                    <circle cx="160" cy="20" r="4" fill="#FFFFFF" stroke="#ED7B46" stroke-width="2" />
+                                    <circle cx="240" cy="45" r="4" fill="#FFFFFF" stroke="#ED7B46" stroke-width="2" />
+                                </svg>
+                            </div>
+
+                            <!-- SHA-256 Monospace Output -->
+                            <div class="mt-1 pt-2 border-t border-border/50 flex items-center justify-between text-[11px] font-mono">
+                                <span class="text-text-secondary/80 truncate max-w-[200px]" id="hash-output">Awaiting input...</span>
+                                <button id="copy-hash" class="text-secondary font-semibold hover:underline shrink-0 disabled:opacity-40" disabled>
+                                    <span id="copy-label">Copy</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Dynamic Verification Status Pill / Banner -->
+                        <div id="status-clear" class="hidden rounded-2xl bg-emerald-50 border border-emerald-200 p-3.5 mb-5 transition-all">
+                            <div class="flex items-center gap-2 text-emerald-800 font-bold text-xs">
+                                <svg class="w-4 h-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span>Clear to Submit</span>
+                                <span class="text-[10px] font-mono px-1.5 py-0.2 rounded bg-emerald-200/70 text-emerald-900 font-semibold ml-auto">UNFLAGGED</span>
+                            </div>
+                            <p class="text-emerald-700 text-[11px] mt-1 leading-normal">
+                                Repository belum pernah juara di hackathon manapun.
+                            </p>
+                        </div>
+
+                        <div id="status-flagged" class="hidden rounded-2xl bg-rose-50 border border-rose-200 p-3.5 mb-5 transition-all">
+                            <div class="flex items-center gap-2 text-rose-800 font-bold text-xs">
+                                <svg class="w-4 h-4 text-rose-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                </svg>
+                                <span>Repository Flagged</span>
+                                <span class="text-[10px] font-mono px-1.5 py-0.2 rounded bg-rose-200 text-rose-900 font-semibold ml-auto">DUPLICATE</span>
+                            </div>
+                            <p class="text-rose-700 text-[11px] mt-1 leading-normal">
+                                Pernah juara di: <span id="flagged-event" class="font-bold underline text-rose-900"></span>. Submission dinonaktifkan.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Bottom Action Buttons: Adelhorn & Motrew (Directly matching reference image) -->
+                    <div class="grid grid-cols-2 gap-3 pt-2">
+                        <button id="secondary-action-btn" class="w-full py-3 px-4 rounded-pill bg-white/80 hover:bg-white text-text-primary text-xs font-semibold shadow-sm border border-white/90 transition-all text-center">
+                            Adelhorn
+                        </button>
+                        <button id="submit-project-btn" class="w-full py-3 px-4 rounded-pill bg-[#ED7B46] hover:bg-[#E06336] text-white text-xs font-semibold shadow-neu-button transition-all text-center disabled:opacity-50 disabled:cursor-not-allowed">
+                            Motrew
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Dots pagination indicator from image -->
+            <div class="flex items-center justify-center gap-2 mt-6">
+                <span class="w-2 h-2 rounded-full bg-slate-300"></span>
+                <span class="w-2 h-2 rounded-full bg-slate-400"></span>
+                <span class="w-2 h-2 rounded-full bg-secondary"></span>
+            </div>
+        </section>
+
+        <!-- Organizer Restricted Area (Jury Gate in Neuform style) -->
+        <section id="organizer-panel" class="w-full max-w-[840px] mt-8 acrylic-card rounded-[28px] p-6 sm:p-8 shadow-neu-card border border-white/80 hidden transition-all duration-300">
+            <div class="flex items-center justify-between pb-4 mb-5 border-b border-border/60">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-purple-100 border border-purple-200 flex items-center justify-center text-purple-700">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-bold text-text-primary flex items-center gap-2">
+                            Organizer Restricted Area
+                            <span class="px-2 py-0.5 text-[10px] font-mono uppercase bg-purple-100 text-purple-800 rounded-full font-semibold">Jury Gate Active</span>
+                        </h3>
+                        <p class="text-xs text-text-secondary font-mono">Tandai repositori pemenang secara permanen pada smart contract BOT Chain.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
+                <div>
+                    <label class="block text-text-secondary text-xs font-mono uppercase tracking-wider font-semibold mb-1.5">Target Hash (Auto-filled)</label>
+                    <input type="text" id="admin-target-hash" 
+                        class="w-full font-mono text-xs bg-white/90 border border-border rounded-xl py-3 px-3.5 text-text-primary focus:outline-none focus:border-secondary transition-colors" 
+                        placeholder="0x..." readonly>
+                </div>
+                <div>
+                    <label class="block text-text-secondary text-xs font-mono uppercase tracking-wider font-semibold mb-1.5">Hackathon Event Name</label>
+                    <input type="text" id="admin-event-name" 
+                        class="w-full font-mono text-xs bg-white/90 border border-border rounded-xl py-3 px-3.5 text-text-primary focus:outline-none focus:border-secondary transition-colors" 
+                        placeholder="Contoh: Web3 Fest 2026 / ETHGlobal">
+                </div>
+            </div>
+
+            <button id="declare-winner-btn" class="w-full py-3.5 rounded-pill bg-gradient-to-r from-purple-700 to-indigo-700 hover:from-purple-600 hover:to-indigo-600 text-white font-semibold text-xs tracking-wide shadow-md shadow-purple-700/20 transition-all flex items-center justify-center gap-2">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                Declare Winner on BOT Chain
+            </button>
+        </section>
+
+        <!-- Live Activity Feed Table -->
+        <section class="w-full max-w-[840px] mt-8 acrylic-card rounded-[28px] p-6 sm:p-7 shadow-neu-card border border-white/80">
+            <div class="flex items-center justify-between mb-4 pb-3 border-b border-border/60">
+                <div class="flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-secondary"></span>
+                    <h3 class="text-xs font-mono font-bold text-text-primary uppercase tracking-wider">Live On-Chain Registry Log</h3>
+                </div>
+                <span class="text-[11px] font-mono text-text-secondary">BOT Chain Testnet (968)</span>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs font-mono">
+                    <thead>
+                        <tr class="text-text-secondary border-b border-border/40 pb-2">
+                            <th class="py-2.5 font-medium">Repository Fingerprint</th>
+                            <th class="py-2.5 font-medium">Event / Status</th>
+                            <th class="py-2.5 font-medium">Flag</th>
+                            <th class="py-2.5 font-medium text-right">Age</th>
+                        </tr>
+                    </thead>
+                    <tbody id="activity-feed-body" class="divide-y divide-border/30 text-text-secondary">
+                        <tr class="hover:bg-white/40 transition-colors">
+                            <td class="py-3 font-mono text-secondary font-medium">0x6b86b27...5b4b</td>
+                            <td class="py-3 text-text-primary font-sans">ETHGlobal 2025</td>
+                            <td class="py-3"><span class="px-2 py-0.5 rounded-full text-[10px] bg-rose-100 text-rose-700 font-semibold">WINNER FLAGGED</span></td>
+                            <td class="py-3 text-right text-text-secondary/70">3m ago</td>
+                        </tr>
+                        <tr class="hover:bg-white/40 transition-colors">
+                            <td class="py-3 font-mono text-text-primary">0x4a91c82...99e1</td>
+                            <td class="py-3 text-text-primary font-sans">BOT Chain Odyssey</td>
+                            <td class="py-3"><span class="px-2 py-0.5 rounded-full text-[10px] bg-emerald-100 text-emerald-700 font-semibold">VERIFIED CLEAN</span></td>
+                            <td class="py-3 text-right text-text-secondary/70">15m ago</td>
+                        </tr>
+                        <tr class="hover:bg-white/40 transition-colors">
+                            <td class="py-3 font-mono text-text-primary">0xd98f12a...001c</td>
+                            <td class="py-3 text-text-primary font-sans">Web3 Global Hack</td>
+                            <td class="py-3"><span class="px-2 py-0.5 rounded-full text-[10px] bg-emerald-100 text-emerald-700 font-semibold">VERIFIED CLEAN</span></td>
+                            <td class="py-3 text-right text-text-secondary/70">1h ago</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="w-full max-w-[840px] pt-8 pb-12 flex flex-col sm:flex-row items-center justify-between text-xs font-mono text-text-secondary gap-4">
+            <div class="flex items-center gap-2">
+                <span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+                <span>System Metriqs • AntiCheat Protocol © 2026</span>
+            </div>
+            <div class="flex items-center gap-3 text-[11px]">
+                <span class="hover:text-text-primary cursor-pointer transition-colors">Ecosystem Visualization</span>
+                <span>•</span>
+                <span class="hover:text-text-primary cursor-pointer transition-colors">Neuform Theme</span>
+            </div>
+        </footer>
+
+    </main>
+
+    <!-- Floating Toast Notification (Neuform Styled) -->
+    <div id="toast" class="toast-box fixed bottom-6 right-6 acrylic-card rounded-2xl p-4 shadow-neu-card flex items-start gap-3 z-50 min-w-[300px] max-w-sm border border-white/90">
+        <div id="toast-icon" class="p-2 rounded-xl bg-secondary/10 text-secondary mt-0.5 shrink-0">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        </div>
+        <div class="flex-1 pr-2">
+            <h4 id="toast-title" class="font-bold text-xs text-text-primary">Notification</h4>
+            <p id="toast-message" class="text-text-secondary text-xs mt-0.5 leading-relaxed">Message content</p>
+        </div>
+        <button onclick="document.getElementById('toast').classList.remove('show')" class="text-text-secondary hover:text-text-primary transition-colors p-1">
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+    </div>
+
+    <!-- Ethers.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
