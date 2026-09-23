@@ -32,3 +32,9 @@ yarn-error.log*
 # TypeScript
 *.tsbuildinfo
 next-env.d.ts
+
+# Ignored specification files
+design.md
+frontend.md
+smart contact.md
+smart_contract.md
