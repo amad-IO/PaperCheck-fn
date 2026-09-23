@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Navbar from '../components/Navbar';
 import CekNaskahView from '../components/views/CekNaskahView';
 import DaftarkanView from '../components/views/DaftarkanView';
@@ -9,7 +9,7 @@ import DetailNaskahView from '../components/views/DetailNaskahView';
 import { extractTextFromFile } from '../lib/parser';
 import { generateDocumentFingerprint } from '../lib/hasher';
 import { checkManuscriptRegistry, SAMPLE_ABSTRACTS, registerManuscriptLocal } from '../lib/mockRegistry';
-import { Shield, CheckCircle, AlertCircle, Info, X, FileText, UploadCloud, Search, Award, FileCheck, Layers } from 'lucide-react';
+import { Shield, CheckCircle, AlertCircle, Info, X, FileText, UploadCloud, Search, Award, FileCheck, Layers, Play, Pause } from 'lucide-react';
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState('cek'); // 'cek' | 'daftarkan' | 'panitia' | 'detail'
@@ -21,6 +21,10 @@ export default function Home() {
     chainId: 84532 // Base Sepolia
   });
 
+  // 3D Carousel Rotation State (Option A: 2-second auto-rotation)
+  const [centerIndex, setCenterIndex] = useState(2); // Card 2 (Vosging) starts at center
+  const [isPaused, setIsPaused] = useState(false);
+
   // Showcase Center Card Dummy/Interactive State
   const [showcaseInput, setShowcaseInput] = useState('');
   const [showcaseHash, setShowcaseHash] = useState(null);
@@ -29,6 +33,15 @@ export default function Home() {
   // Toast Notification State
   const [toast, setToast] = useState(null);
   const workspaceRef = useRef(null);
+
+  // Auto-play timer: 2000ms (2 seconds)
+  useEffect(() => {
+    if (isPaused) return;
+    const timer = setInterval(() => {
+      setCenterIndex((prev) => (prev + 1) % 5);
+    }, 2000);
+    return () => clearInterval(timer);
+  }, [isPaused]);
 
   const showToast = (title, message, type = 'info') => {
     setToast({ title, message, type });
@@ -94,6 +107,27 @@ export default function Home() {
     }
   };
 
+  // Predefined slot styles for the 5-card fanned carousel
+  // All cards have exact identical dimensions: w-[280px] sm:w-[300px] h-[460px] rounded-[30px]
+  const getSlotClass = (cardIndex) => {
+    const slot = (cardIndex - centerIndex + 2 + 5) % 5;
+    
+    switch (slot) {
+      case 0: // Slot 0: Kiri Luar
+        return 'transform -translate-x-[70px] sm:-translate-x-[260px] md:-translate-x-[340px] translate-y-3 -rotate-[10deg] scale-[0.91] z-0 opacity-80 sm:opacity-90';
+      case 1: // Slot 1: Kiri Tengah
+        return 'transform -translate-x-[35px] sm:-translate-x-[130px] md:-translate-x-[170px] translate-y-1.5 -rotate-[5deg] scale-[0.96] z-10 opacity-90 sm:opacity-95';
+      case 2: // Slot 2: Pusat Depan Utama
+        return 'transform translate-x-0 translate-y-0 rotate-0 scale-100 z-20 opacity-100 shadow-2xl';
+      case 3: // Slot 3: Kanan Tengah
+        return 'transform translate-x-[35px] sm:translate-x-[130px] md:translate-x-[170px] translate-y-1.5 rotate-[5deg] scale-[0.96] z-10 opacity-90 sm:opacity-95';
+      case 4: // Slot 4: Kanan Luar
+        return 'transform translate-x-[70px] sm:translate-x-[260px] md:translate-x-[340px] translate-y-3 rotate-[10deg] scale-[0.91] z-0 opacity-80 sm:opacity-90';
+      default:
+        return '';
+    }
+  };
+
   return (
     <div className="flex-1 flex flex-col min-h-screen">
       
@@ -106,7 +140,7 @@ export default function Home() {
         disconnectWallet={disconnectWallet}
       />
 
-      {/* Hero & Fanned Stacked Cards Showcase (Dummy / Visual Showcase identical in size) */}
+      {/* Hero & Fanned Stacked Cards Showcase (Auto-Rotating every 2s, identical card sizes) */}
       <section className="w-full max-w-[1240px] mx-auto px-4 sm:px-6 pt-6 pb-12 flex flex-col items-center select-none overflow-hidden">
         
         {/* Title & Subtitle */}
@@ -118,9 +152,9 @@ export default function Home() {
             Real-time mapping of data streams and architectural consolidation. Designed for absolute clarity.
           </p>
 
-          {/* Preset Buttons */}
+          {/* Preset Buttons & Rotation Indicator */}
           <div className="mt-4 flex flex-wrap items-center justify-center gap-2 text-xs">
-            <span className="text-slate-400 font-mono text-[11px]">Uji Cepat Pratinjau:</span>
+            <span className="text-slate-400 font-mono text-[11px]">Uji Cepat:</span>
             <button 
               onClick={() => handleShowcasePreset('SAMPLE_CLEAN')}
               className="px-3 py-1 rounded-full bg-white/90 hover:bg-white border border-slate-300 text-emerald-800 text-xs font-medium shadow-sm transition-all"
@@ -139,18 +173,28 @@ export default function Home() {
             >
               Naskah Parafrase
             </button>
+            <button 
+              onClick={() => setIsPaused(!isPaused)}
+              className="px-3 py-1 rounded-full bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700 text-xs font-mono font-medium shadow-sm transition-all flex items-center gap-1"
+            >
+              {isPaused ? 'Lanjut Rotasi' : 'Jeda (2s)'}
+            </button>
           </div>
         </div>
 
         {/* FANNED STACKED CARDS CONTAINER
-            Semua card memiliki UKURAN YANG SAMA PERSIS: w-[300px] h-[460px] rounded-[30px]
-            Disusun bertumpuk simetris dengan rotasi dan pergeseran horizontal */}
-        <div className="relative w-full max-w-[1020px] h-[500px] flex items-center justify-center">
+            Setiap kartu memiliki ukuran seragam: w-[280px] sm:w-[300px] h-[460px] rounded-[30px]
+            Berputar bergantian otomatis setiap 2 detik dengan transisi mulus 700ms */}
+        <div 
+          onMouseEnter={() => setIsPaused(true)}
+          onMouseLeave={() => setIsPaused(false)}
+          className="relative w-full max-w-[1020px] h-[500px] flex items-center justify-center cursor-pointer"
+        >
           
-          {/* CARD 1: Fodlecte (Peach #F5A87B) - Ukuran Identik: w-[300px] h-[460px] */}
+          {/* CARD 0: Fodlecte (Peach #F5A87B) */}
           <div 
-            onClick={() => scrollToWorkspace('detail')}
-            className="absolute w-[280px] sm:w-[300px] h-[460px] rounded-[30px] bg-[#F5A87B] p-6 text-white shadow-xl transform -translate-x-[180px] sm:-translate-x-[260px] md:-translate-x-[340px] translate-y-3 -rotate-[10deg] z-0 hidden sm:flex flex-col justify-between cursor-pointer hover:-translate-y-1 transition-all duration-300"
+            onClick={() => setCenterIndex(0)}
+            className={`absolute w-[280px] sm:w-[300px] h-[460px] rounded-[30px] bg-[#F5A87B] p-6 text-white shadow-xl flex flex-col justify-between transition-all duration-700 ease-in-out ${getSlotClass(0)}`}
           >
             <div>
               <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center mb-6">
@@ -181,10 +225,10 @@ export default function Home() {
             </div>
           </div>
 
-          {/* CARD 2: Heschin (Terracotta #E06336) - Ukuran Identik: w-[300px] h-[460px] */}
+          {/* CARD 1: Heschin (Terracotta #E06336) */}
           <div 
-            onClick={() => scrollToWorkspace('cek')}
-            className="absolute w-[280px] sm:w-[300px] h-[460px] rounded-[30px] bg-[#E06336] p-6 text-white shadow-xl transform -translate-x-[90px] sm:-translate-x-[130px] md:-translate-x-[170px] translate-y-1.5 -rotate-[5deg] z-10 hidden sm:flex flex-col justify-between cursor-pointer hover:-translate-y-1 transition-all duration-300"
+            onClick={() => setCenterIndex(1)}
+            className={`absolute w-[280px] sm:w-[300px] h-[460px] rounded-[30px] bg-[#E06336] p-6 text-white shadow-xl flex flex-col justify-between transition-all duration-700 ease-in-out ${getSlotClass(1)}`}
           >
             <div>
               <h3 className="text-2xl font-bold mb-2">Heschin</h3>
@@ -192,7 +236,7 @@ export default function Home() {
                 Lome stupur olligrmu crloldlt oniomsnin d...
               </p>
               
-              {/* Equalizer Bar Chart from reference screenshot */}
+              {/* Equalizer Bar Chart */}
               <div className="flex items-end justify-between h-24 px-3 py-3 bg-black/10 rounded-2xl mb-6">
                 <div className="w-3 bg-white/95 rounded-full h-[45%]"></div>
                 <div className="w-3 bg-white/95 rounded-full h-[75%]"></div>
@@ -215,81 +259,11 @@ export default function Home() {
             <div className="text-[10px] font-mono text-white/60 text-center">• • •</div>
           </div>
 
-          {/* CARD 4: ertads (Slate Navy #3D4A60) - Ukuran Identik: w-[300px] h-[460px] */}
+          {/* CARD 2: Vosging (Center Frosted Glass Acrylic) */}
           <div 
-            onClick={() => scrollToWorkspace('panitia')}
-            className="absolute w-[280px] sm:w-[300px] h-[460px] rounded-[30px] bg-[#3D4A60] p-6 text-white shadow-xl transform translate-x-[90px] sm:translate-x-[130px] md:translate-x-[170px] translate-y-1.5 rotate-[5deg] z-10 hidden sm:flex flex-col justify-between cursor-pointer hover:-translate-y-1 transition-all duration-300"
+            onClick={() => setCenterIndex(2)}
+            className={`absolute w-[280px] sm:w-[300px] h-[460px] rounded-[30px] acrylic-card p-6 shadow-2xl flex flex-col justify-between transition-all duration-700 ease-in-out ${getSlotClass(2)}`}
           >
-            <div>
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-xs font-mono text-white/60">INTEGRITY</span>
-                <span className="text-xs text-white/60">• •</span>
-              </div>
-              <h3 className="text-2xl font-bold mb-2">ertads</h3>
-              <p className="text-white/70 text-xs leading-relaxed mb-6 font-normal">
-                Decentralized validation matrix for hackathon integrity assurance.
-              </p>
-
-              <div className="bg-black/20 rounded-2xl p-4 space-y-3 mb-6">
-                <div className="flex justify-between items-center text-xs">
-                  <span className="text-white/70">Revert Prevention</span>
-                  <span className="font-mono font-bold text-emerald-400">28%</span>
-                </div>
-                <div className="flex justify-between items-center text-xs">
-                  <span className="text-white/70">Gas Efficiency</span>
-                  <span className="font-mono font-bold text-white">20%</span>
-                </div>
-                <div className="w-full bg-white/10 rounded-full h-1.5 overflow-hidden">
-                  <div className="bg-[#ED7B46] h-full rounded-full w-[65%]"></div>
-                </div>
-              </div>
-
-              <div className="py-2.5 px-4 rounded-full bg-white/10 text-center text-xs font-semibold">
-                New
-              </div>
-            </div>
-            <div className="text-[10px] font-mono text-white/50 text-right">0x968...BOT</div>
-          </div>
-
-          {/* CARD 5: Registry (Ice Blue #DCE5EC) - Ukuran Identik: w-[300px] h-[460px] */}
-          <div 
-            onClick={() => scrollToWorkspace('detail')}
-            className="absolute w-[280px] sm:w-[300px] h-[460px] rounded-[30px] bg-[#DCE5EC] p-6 text-[#2D3748] shadow-xl transform translate-x-[180px] sm:translate-x-[260px] md:translate-x-[340px] translate-y-3 rotate-[10deg] z-0 hidden sm:flex flex-col justify-between cursor-pointer hover:-translate-y-1 transition-all duration-300"
-          >
-            <div>
-              <div className="flex items-center justify-end mb-4">
-                <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm">
-                  <svg className="w-4 h-4 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                  </svg>
-                </div>
-              </div>
-              <h3 className="text-xl font-bold mb-2 text-slate-800">Registry</h3>
-              <p className="text-slate-600 text-xs leading-relaxed mb-6 font-normal">
-                Immutable cryptographic fingerprints on BOT Chain ledger.
-              </p>
-              
-              <div className="space-y-2">
-                <div className="p-3 bg-white/80 rounded-2xl text-[11px] font-mono shadow-sm">
-                  <div className="text-slate-400 text-[9px]">LAST HASH</div>
-                  <div className="font-bold truncate text-slate-800">0x6b86b...5b4b</div>
-                </div>
-                <div className="p-3 bg-white/80 rounded-2xl text-[11px] font-mono shadow-sm">
-                  <div className="text-slate-400 text-[9px]">STATUS</div>
-                  <div className="font-bold text-emerald-600">Finalized</div>
-                </div>
-              </div>
-            </div>
-            <div className="flex items-center justify-between text-slate-400">
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-              <span className="text-[10px] font-mono">JURY #01</span>
-            </div>
-          </div>
-
-          {/* CARD 3: Vosging (Center Frosted Acrylic) - Ukuran Identik: w-[300px] h-[460px] */}
-          <div className="relative z-20 w-[280px] sm:w-[300px] h-[460px] rounded-[30px] acrylic-card p-6 shadow-2xl flex flex-col justify-between transition-all duration-300">
             <div>
               {/* Top Icons Row */}
               <div className="flex items-center justify-between mb-3">
@@ -297,7 +271,8 @@ export default function Home() {
                   <FileText className="w-4 h-4 text-slate-800" />
                 </div>
                 <button 
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.stopPropagation();
                     setShowcaseInput('');
                     setShowcaseHash(null);
                     setShowcaseStatus(null);
@@ -330,7 +305,10 @@ export default function Home() {
 
                 {/* Dummy/Shortcut Bar */}
                 <div 
-                  onClick={() => scrollToWorkspace('cek')}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    scrollToWorkspace('cek');
+                  }}
                   className="cursor-pointer bg-white/90 border border-slate-300/80 rounded-xl py-1.5 px-2.5 text-[10px] font-mono text-slate-700 truncate shadow-inner flex items-center justify-between my-1.5 hover:border-[#ED7B46]"
                 >
                   <span className="truncate">
@@ -372,13 +350,19 @@ export default function Home() {
             {/* Bottom Pill Buttons: Adelhorn & Motrew */}
             <div className="grid grid-cols-2 gap-2 pt-1">
               <button 
-                onClick={() => scrollToWorkspace('cek')}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  scrollToWorkspace('cek');
+                }}
                 className="w-full py-2.5 px-3 rounded-full bg-white/80 hover:bg-white text-slate-800 text-[11px] font-semibold shadow-sm border border-white/90 transition-all text-center"
               >
                 Adelhorn
               </button>
               <button 
-                onClick={() => scrollToWorkspace('daftarkan')}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  scrollToWorkspace('daftarkan');
+                }}
                 className="w-full py-2.5 px-3 rounded-full bg-[#ED7B46] hover:bg-[#E06336] text-white text-[11px] font-semibold shadow-md transition-all text-center"
               >
                 Motrew
@@ -386,13 +370,93 @@ export default function Home() {
             </div>
           </div>
 
+          {/* CARD 3: ertads (Slate Navy #3D4A60) */}
+          <div 
+            onClick={() => setCenterIndex(3)}
+            className={`absolute w-[280px] sm:w-[300px] h-[460px] rounded-[30px] bg-[#3D4A60] p-6 text-white shadow-xl flex flex-col justify-between transition-all duration-700 ease-in-out ${getSlotClass(3)}`}
+          >
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-xs font-mono text-white/60">INTEGRITY</span>
+                <span className="text-xs text-white/60">• •</span>
+              </div>
+              <h3 className="text-2xl font-bold mb-2">ertads</h3>
+              <p className="text-white/70 text-xs leading-relaxed mb-6 font-normal">
+                Decentralized validation matrix for hackathon integrity assurance.
+              </p>
+
+              <div className="bg-black/20 rounded-2xl p-4 space-y-3 mb-6">
+                <div className="flex justify-between items-center text-xs">
+                  <span className="text-white/70">Revert Prevention</span>
+                  <span className="font-mono font-bold text-emerald-400">28%</span>
+                </div>
+                <div className="flex justify-between items-center text-xs">
+                  <span className="text-white/70">Gas Efficiency</span>
+                  <span className="font-mono font-bold text-white">20%</span>
+                </div>
+                <div className="w-full bg-white/10 rounded-full h-1.5 overflow-hidden">
+                  <div className="bg-[#ED7B46] h-full rounded-full w-[65%]"></div>
+                </div>
+              </div>
+
+              <div className="py-2.5 px-4 rounded-full bg-white/10 text-center text-xs font-semibold">
+                New
+              </div>
+            </div>
+            <div className="text-[10px] font-mono text-white/50 text-right">0x968...BOT</div>
+          </div>
+
+          {/* CARD 4: Registry (Ice Blue #DCE5EC) */}
+          <div 
+            onClick={() => setCenterIndex(4)}
+            className={`absolute w-[280px] sm:w-[300px] h-[460px] rounded-[30px] bg-[#DCE5EC] p-6 text-[#2D3748] shadow-xl flex flex-col justify-between transition-all duration-700 ease-in-out ${getSlotClass(4)}`}
+          >
+            <div>
+              <div className="flex items-center justify-end mb-4">
+                <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm">
+                  <svg className="w-4 h-4 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
+              </div>
+              <h3 className="text-xl font-bold mb-2 text-slate-800">Registry</h3>
+              <p className="text-slate-600 text-xs leading-relaxed mb-6 font-normal">
+                Immutable cryptographic fingerprints on BOT Chain ledger.
+              </p>
+              
+              <div className="space-y-2">
+                <div className="p-3 bg-white/80 rounded-2xl text-[11px] font-mono shadow-sm">
+                  <div className="text-slate-400 text-[9px]">LAST HASH</div>
+                  <div className="font-bold truncate text-slate-800">0x6b86b...5b4b</div>
+                </div>
+                <div className="p-3 bg-white/80 rounded-2xl text-[11px] font-mono shadow-sm">
+                  <div className="text-slate-400 text-[9px]">STATUS</div>
+                  <div className="font-bold text-emerald-600">Finalized</div>
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center justify-between text-slate-400">
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+              <span className="text-[10px] font-mono">JURY #01</span>
+            </div>
+          </div>
+
         </div>
 
-        {/* 3 Pagination Dots */}
+        {/* 5 Interactive Rotation Dots */}
         <div className="flex items-center justify-center gap-2 mt-6">
-          <span className="w-2 h-2 rounded-full bg-slate-300"></span>
-          <span className="w-2 h-2 rounded-full bg-slate-400"></span>
-          <span className="w-2 h-2 rounded-full bg-[#ED7B46]"></span>
+          {[0, 1, 2, 3, 4].map((idx) => (
+            <button
+              key={idx}
+              onClick={() => setCenterIndex(idx)}
+              aria-label={`Pilih Kartu ${idx + 1}`}
+              className={`h-2 rounded-full transition-all duration-300 ${
+                centerIndex === idx ? 'w-6 bg-[#ED7B46]' : 'w-2 bg-slate-300 hover:bg-slate-400'
+              }`}
+            />
+          ))}
         </div>
 
       </section>
