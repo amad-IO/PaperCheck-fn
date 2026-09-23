@@ -9,10 +9,18 @@ import DetailNaskahView from '../components/views/DetailNaskahView';
 import { extractTextFromFile } from '../lib/parser';
 import { generateDocumentFingerprint } from '../lib/hasher';
 import { checkManuscriptRegistry, SAMPLE_ABSTRACTS, registerManuscriptLocal } from '../lib/mockRegistry';
-import { Shield, CheckCircle, AlertCircle, Info, X, FileText, UploadCloud, Search, Award, FileCheck, Layers, Play, Pause } from 'lucide-react';
+import { Shield, CheckCircle, AlertCircle, Info, X, FileText, UploadCloud, Search, Award, Play, Pause } from 'lucide-react';
+
+const TAB_ORDER = {
+  'cek': 0,
+  'daftarkan': 1,
+  'panitia': 2,
+  'detail': 3
+};
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState('cek'); // 'cek' | 'daftarkan' | 'panitia' | 'detail'
+  const [slideDirection, setSlideDirection] = useState('forward'); // 'forward' | 'backward'
   
   // Wallet State
   const [walletState, setWalletState] = useState({
@@ -21,17 +29,18 @@ export default function Home() {
     chainId: 84532 // Base Sepolia
   });
 
-  // 3D Carousel Rotation State (Option A: 2-second auto-rotation)
+  // 3D Carousel Rotation State (2-second auto-rotation)
   const [centerIndex, setCenterIndex] = useState(2); // Card 2 (Vosging) starts at center
   const [isPaused, setIsPaused] = useState(false);
 
-  // Showcase Center Card Dummy/Interactive State
+  // Showcase Center Card Interactive State
   const [showcaseInput, setShowcaseInput] = useState('');
   const [showcaseHash, setShowcaseHash] = useState(null);
   const [showcaseStatus, setShowcaseStatus] = useState(null);
 
   // Toast Notification State
   const [toast, setToast] = useState(null);
+  const toastTimeoutRef = useRef(null);
   const workspaceRef = useRef(null);
 
   // Auto-play timer: 2000ms (2 seconds)
@@ -44,8 +53,12 @@ export default function Home() {
   }, [isPaused]);
 
   const showToast = (title, message, type = 'info') => {
-    setToast({ title, message, type });
-    setTimeout(() => {
+    if (toastTimeoutRef.current) {
+      clearTimeout(toastTimeoutRef.current);
+    }
+    const id = Date.now();
+    setToast({ id, title, message, type });
+    toastTimeoutRef.current = setTimeout(() => {
       setToast(null);
     }, 4500);
   };
@@ -60,7 +73,7 @@ export default function Home() {
             address: accounts[0],
             chainId: 84532
           });
-          showToast('Wallet Terhubung', `Terhubung ke ${accounts[0].substring(0, 6)}...`, 'success');
+          showToast('Wallet Connected', `Connected to ${accounts[0].substring(0, 6)}...`, 'success');
           return;
         }
       } catch (e) {
@@ -74,7 +87,7 @@ export default function Home() {
       address: demoAddress,
       chainId: 84532
     });
-    showToast('Wallet Simulasi Aktif', `Terhubung ke ${demoAddress.substring(0, 6)}...`, 'success');
+    showToast('Demo Wallet Active', `Connected to ${demoAddress.substring(0, 6)}...`, 'success');
   };
 
   const disconnectWallet = () => {
@@ -83,14 +96,35 @@ export default function Home() {
       address: '',
       chainId: 84532
     });
-    showToast('Wallet Diputus', 'Koneksi wallet telah dihentikan.', 'info');
+    showToast('Wallet Disconnected', 'Wallet connection terminated.', 'info');
+  };
+
+  const handleTabChange = (newTab) => {
+    if (newTab === activeTab) return;
+    const prevIndex = TAB_ORDER[activeTab] ?? 0;
+    const nextIndex = TAB_ORDER[newTab] ?? 0;
+    setSlideDirection(nextIndex >= prevIndex ? 'forward' : 'backward');
+    setActiveTab(newTab);
   };
 
   const scrollToWorkspace = (tab) => {
-    setActiveTab(tab);
-    if (workspaceRef.current) {
-      workspaceRef.current.scrollIntoView({ behavior: 'smooth' });
+    if (tab !== activeTab) {
+      handleTabChange(tab);
     }
+    const performScroll = () => {
+      if (workspaceRef.current) {
+        const navbarHeight = 64; // Sticky navbar height (h-16)
+        const currentScroll = window.scrollY || window.pageYOffset || 0;
+        const elementTop = workspaceRef.current.getBoundingClientRect().top + currentScroll;
+        window.scrollTo({
+          top: Math.max(0, elementTop - navbarHeight),
+          behavior: 'smooth'
+        });
+      }
+    };
+
+    performScroll();
+    requestAnimationFrame(performScroll);
   };
 
   const handleShowcasePreset = async (presetKey) => {
@@ -101,28 +135,28 @@ export default function Home() {
       setShowcaseHash(fp);
       const res = await checkManuscriptRegistry(text);
       setShowcaseStatus(res);
-      showToast('Pratinjau Diperbarui', `Sidik jari: ${fp.sha256.substring(0, 14)}...`, 'info');
+      showToast('Preview Updated', `Fingerprint: ${fp.sha256.substring(0, 14)}...`, 'info');
     } catch (err) {
       console.error(err);
     }
   };
 
   // Predefined slot styles for the 5-card fanned carousel
-  // All cards have exact identical dimensions: w-[280px] sm:w-[300px] h-[460px] rounded-[30px]
+  // All cards have exact identical dimensions: w-[270px] sm:w-[290px] h-[340px] rounded-[26px]
   const getSlotClass = (cardIndex) => {
     const slot = (cardIndex - centerIndex + 2 + 5) % 5;
     
     switch (slot) {
-      case 0: // Slot 0: Kiri Luar
-        return 'transform -translate-x-[70px] sm:-translate-x-[260px] md:-translate-x-[340px] translate-y-3 -rotate-[10deg] scale-[0.91] z-0 opacity-80 sm:opacity-90';
-      case 1: // Slot 1: Kiri Tengah
-        return 'transform -translate-x-[35px] sm:-translate-x-[130px] md:-translate-x-[170px] translate-y-1.5 -rotate-[5deg] scale-[0.96] z-10 opacity-90 sm:opacity-95';
-      case 2: // Slot 2: Pusat Depan Utama
+      case 0: // Slot 0: Far Left
+        return 'transform -translate-x-[55px] sm:-translate-x-[210px] md:-translate-x-[280px] translate-y-2 -rotate-[8deg] scale-[0.92] z-0 opacity-80 sm:opacity-90';
+      case 1: // Slot 1: Mid Left
+        return 'transform -translate-x-[28px] sm:-translate-x-[105px] md:-translate-x-[140px] translate-y-1 -rotate-[4deg] scale-[0.96] z-10 opacity-90 sm:opacity-95';
+      case 2: // Slot 2: Center Front Primary
         return 'transform translate-x-0 translate-y-0 rotate-0 scale-100 z-20 opacity-100 shadow-2xl';
-      case 3: // Slot 3: Kanan Tengah
-        return 'transform translate-x-[35px] sm:translate-x-[130px] md:translate-x-[170px] translate-y-1.5 rotate-[5deg] scale-[0.96] z-10 opacity-90 sm:opacity-95';
-      case 4: // Slot 4: Kanan Luar
-        return 'transform translate-x-[70px] sm:translate-x-[260px] md:translate-x-[340px] translate-y-3 rotate-[10deg] scale-[0.91] z-0 opacity-80 sm:opacity-90';
+      case 3: // Slot 3: Mid Right
+        return 'transform translate-x-[28px] sm:translate-x-[105px] md:translate-x-[140px] translate-y-1 rotate-[4deg] scale-[0.96] z-10 opacity-90 sm:opacity-95';
+      case 4: // Slot 4: Far Right
+        return 'transform translate-x-[55px] sm:translate-x-[210px] md:translate-x-[280px] translate-y-2 rotate-[8deg] scale-[0.92] z-0 opacity-80 sm:opacity-90';
       default:
         return '';
     }
@@ -141,81 +175,81 @@ export default function Home() {
       />
 
       {/* Hero & Fanned Stacked Cards Showcase (Auto-Rotating every 2s, identical card sizes) */}
-      <section className="w-full max-w-[1240px] mx-auto px-4 sm:px-6 pt-6 pb-12 flex flex-col items-center select-none overflow-hidden">
+      <section className="w-full min-h-[calc(100vh-4rem)] flex flex-col justify-center items-center py-5 px-4 sm:px-6 select-none overflow-hidden">
         
         {/* Title & Subtitle */}
-        <div className="text-center max-w-2xl mx-auto mb-8">
-          <h1 className="text-4xl sm:text-5xl lg:text-[56px] font-medium text-slate-900 tracking-tight leading-[1.08] mb-3">
+        <div className="text-center max-w-2xl mx-auto mb-5">
+          <h1 className="text-4xl sm:text-5xl lg:text-[54px] font-medium text-slate-900 dark:text-white tracking-tight leading-[1.08] mb-2.5">
             System Metriqs
           </h1>
-          <p className="text-slate-600 text-sm sm:text-base leading-relaxed max-w-xl mx-auto font-normal">
+          <p className="text-slate-600 dark:text-slate-400 text-sm sm:text-base leading-relaxed max-w-xl mx-auto font-normal">
             Real-time mapping of data streams and architectural consolidation. Designed for absolute clarity.
           </p>
 
-          {/* Preset Buttons & Rotation Indicator */}
+          {/* Preset Buttons & Rotation Controls */}
           <div className="mt-4 flex flex-wrap items-center justify-center gap-2 text-xs">
-            <span className="text-slate-400 font-mono text-[11px]">Uji Cepat:</span>
+            <span className="text-slate-400 dark:text-slate-500 font-mono text-xs">Quick Demo:</span>
             <button 
               onClick={() => handleShowcasePreset('SAMPLE_CLEAN')}
-              className="px-3 py-1 rounded-full bg-white/90 hover:bg-white border border-slate-300 text-emerald-800 text-xs font-medium shadow-sm transition-all"
+              className="px-3.5 py-1.5 rounded-full bg-white/90 hover:bg-white dark:bg-[#262626] dark:hover:bg-[#2e2e2e] border border-slate-300 dark:border-[#383838] text-emerald-800 dark:text-emerald-400 text-xs font-medium shadow-sm transition-all"
             >
-              Naskah Bersih
+              Clean Paper
             </button>
             <button 
               onClick={() => handleShowcasePreset('SAMPLE_A')}
-              className="px-3 py-1 rounded-full bg-white/90 hover:bg-white border border-slate-300 text-[#ED7B46] text-xs font-medium shadow-sm transition-all"
+              className="px-3.5 py-1.5 rounded-full bg-white/90 hover:bg-white dark:bg-[#262626] dark:hover:bg-[#2e2e2e] border border-slate-300 dark:border-[#383838] text-[#ED7B46] dark:text-[#F5A87B] text-xs font-medium shadow-sm transition-all"
             >
-              Naskah Pernah Ikut
+              Prior Award Winner
             </button>
             <button 
               onClick={() => handleShowcasePreset('SAMPLE_A_PARAPHRASED')}
-              className="px-3 py-1 rounded-full bg-white/90 hover:bg-white border border-slate-300 text-rose-800 text-xs font-medium shadow-sm transition-all"
+              className="px-3.5 py-1.5 rounded-full bg-white/90 hover:bg-white dark:bg-[#262626] dark:hover:bg-[#2e2e2e] border border-slate-300 dark:border-[#383838] text-rose-800 dark:text-rose-400 text-xs font-medium shadow-sm transition-all"
             >
-              Naskah Parafrase
+              Paraphrased Match
             </button>
             <button 
               onClick={() => setIsPaused(!isPaused)}
-              className="px-3 py-1 rounded-full bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700 text-xs font-mono font-medium shadow-sm transition-all flex items-center gap-1"
+              className="px-3.5 py-1.5 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-[#262626] dark:hover:bg-[#2e2e2e] border border-slate-300 dark:border-[#383838] text-slate-700 dark:text-slate-300 text-xs font-mono font-medium shadow-sm transition-all flex items-center gap-1"
             >
-              {isPaused ? 'Lanjut Rotasi' : 'Jeda (2s)'}
+              {isPaused ? 'Resume Rotation' : 'Pause (2s)'}
             </button>
           </div>
         </div>
 
         {/* FANNED STACKED CARDS CONTAINER
-            Setiap kartu memiliki ukuran seragam: w-[280px] sm:w-[300px] h-[460px] rounded-[30px]
-            Berputar bergantian otomatis setiap 2 detik dengan transisi mulus 700ms */}
+            Every card has uniform compact dimensions: w-[270px] sm:w-[290px] h-[340px] rounded-[26px]
+            Cycles automatically every 2 seconds with 700ms smooth transitions */}
         <div 
           onMouseEnter={() => setIsPaused(true)}
           onMouseLeave={() => setIsPaused(false)}
-          className="relative w-full max-w-[1020px] h-[500px] flex items-center justify-center cursor-pointer"
+          className="relative w-full max-w-[980px] h-[360px] flex items-center justify-center cursor-pointer"
         >
           
           {/* CARD 0: Fodlecte (Peach #F5A87B) */}
           <div 
             onClick={() => setCenterIndex(0)}
-            className={`absolute w-[280px] sm:w-[300px] h-[460px] rounded-[30px] bg-[#F5A87B] p-6 text-white shadow-xl flex flex-col justify-between transition-all duration-700 ease-in-out ${getSlotClass(0)}`}
+            className={`absolute w-[270px] sm:w-[290px] h-[340px] rounded-[26px] bg-[#F5A87B] p-5 text-white shadow-xl flex flex-col justify-between transition-all duration-700 ease-in-out ${getSlotClass(0)}`}
           >
             <div>
-              <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center mb-6">
+              <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center mb-3">
                 <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
                 </svg>
               </div>
-              <h3 className="text-2xl font-bold mb-2">Fodlecte</h3>
-              <p className="text-white/85 text-xs leading-relaxed mb-6 font-normal">
+              <h3 className="text-xl font-bold mb-1.5">Fodlecte</h3>
+              <p className="text-white/85 text-xs leading-relaxed mb-3 line-clamp-2 font-normal">
                 Lome pastro allios saide oncesic omd cosfotidtila cert irot niridve const oormot.
               </p>
               
-              <div className="space-y-3">
-                <div className="bg-white/15 rounded-2xl p-3.5">
+              <div className="space-y-2">
+                <div className="bg-white/15 rounded-xl p-2.5">
                   <div className="text-[10px] text-white/75 font-mono">Total Hash</div>
-                  <div className="text-2xl font-bold font-mono">1,245</div>
+                  <div className="text-lg font-bold font-mono">1,245</div>
                 </div>
-                <div className="bg-white/15 rounded-2xl p-3.5">
+                <div className="bg-white/15 rounded-xl p-2.5">
                   <div className="text-[10px] text-white/75 font-mono">Global Events</div>
-                  <div className="text-xl font-bold font-mono">15</div>
+                  <div className="text-base font-bold font-mono">15</div>
                 </div>
               </div>
             </div>
@@ -228,30 +262,30 @@ export default function Home() {
           {/* CARD 1: Heschin (Terracotta #E06336) */}
           <div 
             onClick={() => setCenterIndex(1)}
-            className={`absolute w-[280px] sm:w-[300px] h-[460px] rounded-[30px] bg-[#E06336] p-6 text-white shadow-xl flex flex-col justify-between transition-all duration-700 ease-in-out ${getSlotClass(1)}`}
+            className={`absolute w-[270px] sm:w-[290px] h-[340px] rounded-[26px] bg-[#E06336] p-5 text-white shadow-xl flex flex-col justify-between transition-all duration-700 ease-in-out ${getSlotClass(1)}`}
           >
             <div>
-              <h3 className="text-2xl font-bold mb-2">Heschin</h3>
-              <p className="text-white/85 text-xs leading-relaxed mb-5 font-normal">
+              <h3 className="text-xl font-bold mb-1.5">Heschin</h3>
+              <p className="text-white/85 text-xs leading-relaxed mb-3 line-clamp-2 font-normal">
                 Lome stupur olligrmu crloldlt oniomsnin d...
               </p>
               
               {/* Equalizer Bar Chart */}
-              <div className="flex items-end justify-between h-24 px-3 py-3 bg-black/10 rounded-2xl mb-6">
-                <div className="w-3 bg-white/95 rounded-full h-[45%]"></div>
-                <div className="w-3 bg-white/95 rounded-full h-[75%]"></div>
-                <div className="w-3 bg-white/95 rounded-full h-[100%]"></div>
-                <div className="w-3 bg-white/95 rounded-full h-[60%]"></div>
-                <div className="w-3 bg-white/95 rounded-full h-[85%]"></div>
-                <div className="w-3 bg-white/95 rounded-full h-[40%]"></div>
+              <div className="flex items-end justify-between h-16 px-3 py-2 bg-black/10 rounded-xl mb-3">
+                <div className="w-2.5 bg-white/95 rounded-full h-[45%]"></div>
+                <div className="w-2.5 bg-white/95 rounded-full h-[75%]"></div>
+                <div className="w-2.5 bg-white/95 rounded-full h-[100%]"></div>
+                <div className="w-2.5 bg-white/95 rounded-full h-[60%]"></div>
+                <div className="w-2.5 bg-white/95 rounded-full h-[85%]"></div>
+                <div className="w-2.5 bg-white/95 rounded-full h-[40%]"></div>
               </div>
 
               {/* Hoohens & Gonets Buttons */}
-              <div className="space-y-2">
-                <div className="w-full py-2.5 px-3 rounded-full bg-white/15 text-center text-xs font-semibold">
+              <div className="space-y-1.5">
+                <div className="w-full py-2 px-3 rounded-full bg-white/15 text-center text-xs font-semibold">
                   Hoohens
                 </div>
-                <div className="w-full py-2.5 px-3 rounded-full bg-white/10 text-center text-xs font-semibold text-white/85">
+                <div className="w-full py-2 px-3 rounded-full bg-white/10 text-center text-xs font-semibold text-white/85">
                   Gonets
                 </div>
               </div>
@@ -262,12 +296,12 @@ export default function Home() {
           {/* CARD 2: Vosging (Center Frosted Glass Acrylic) */}
           <div 
             onClick={() => setCenterIndex(2)}
-            className={`absolute w-[280px] sm:w-[300px] h-[460px] rounded-[30px] acrylic-card p-6 shadow-2xl flex flex-col justify-between transition-all duration-700 ease-in-out ${getSlotClass(2)}`}
+            className={`absolute w-[270px] sm:w-[290px] h-[340px] rounded-[26px] acrylic-card p-5 shadow-2xl flex flex-col justify-between transition-all duration-700 ease-in-out ${getSlotClass(2)}`}
           >
             <div>
               {/* Top Icons Row */}
-              <div className="flex items-center justify-between mb-3">
-                <div className="w-9 h-9 rounded-2xl bg-white/85 border border-white/90 flex items-center justify-center shadow-sm">
+              <div className="flex items-center justify-between mb-2">
+                <div className="w-8 h-8 rounded-xl bg-white/85 border border-white/90 flex items-center justify-center shadow-sm">
                   <FileText className="w-4 h-4 text-slate-800" />
                 </div>
                 <button 
@@ -277,60 +311,60 @@ export default function Home() {
                     setShowcaseHash(null);
                     setShowcaseStatus(null);
                   }}
-                  title="Reset pratinjau"
-                  className="w-7 h-7 rounded-full bg-white/60 hover:bg-white flex items-center justify-center text-slate-500 transition-all shadow-sm"
+                  title="Reset preview"
+                  className="w-6 h-6 rounded-full bg-white/60 hover:bg-white flex items-center justify-center text-slate-500 transition-all shadow-sm"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
               </div>
 
-              {/* Title & Copy from screenshot */}
-              <div className="mb-3">
-                <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Vosging</h2>
-                <p className="text-slate-600 text-[11px] leading-relaxed mt-1 font-normal line-clamp-2">
-                  Lame stywa otters oxisrcio oscaoooshair ceed ooisnp aidtie aaid ononrbitoifne oond enninos.
+              {/* Title & Copy from reference */}
+              <div className="mb-2">
+                <h2 className="text-xl font-bold text-slate-900 tracking-tight leading-tight">Vosging</h2>
+                <p className="text-slate-600 text-[11px] leading-tight mt-0.5 font-normal line-clamp-1">
+                  Lame stywa otters oxisrcio oscaoooshair ceed ooisnp.
                 </p>
               </div>
 
               {/* Inner Acrylic Box with OS & Spline Wave Graph */}
-              <div className="inner-acrylic rounded-[20px] p-3.5 shadow-sm mb-3 relative overflow-hidden">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs font-bold text-slate-900 uppercase tracking-wider font-mono">OS</span>
-                  <div className="w-5 h-5 rounded-md bg-white/80 flex items-center justify-center">
-                    <svg className="w-3 h-3 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              <div className="inner-acrylic rounded-2xl p-2.5 shadow-sm mb-2 relative overflow-hidden">
+                <div className="flex items-center justify-between mb-0.5">
+                  <span className="text-[10px] font-bold text-slate-900 uppercase tracking-wider font-mono">OS</span>
+                  <div className="w-4 h-4 rounded bg-white/80 flex items-center justify-center">
+                    <svg className="w-2.5 h-2.5 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                     </svg>
                   </div>
                 </div>
 
-                {/* Dummy/Shortcut Bar */}
+                {/* Interactive Demo File Shortcut */}
                 <div 
                   onClick={(e) => {
                     e.stopPropagation();
                     scrollToWorkspace('cek');
                   }}
-                  className="cursor-pointer bg-white/90 border border-slate-300/80 rounded-xl py-1.5 px-2.5 text-[10px] font-mono text-slate-700 truncate shadow-inner flex items-center justify-between my-1.5 hover:border-[#ED7B46]"
+                  className="cursor-pointer bg-white/90 border border-slate-300/80 rounded-lg py-1 px-2 text-[10px] font-mono text-slate-700 truncate shadow-inner flex items-center justify-between my-1 hover:border-[#ED7B46]"
                 >
                   <span className="truncate">
-                    {showcaseInput ? showcaseInput.substring(0, 24) + '...' : 'Pilih Berkas Naskah LKTI (PDF / DOCX)...'}
+                    {showcaseInput ? showcaseInput.substring(0, 20) + '...' : 'Select Manuscript...'}
                   </span>
                   <UploadCloud className="w-3 h-3 text-[#ED7B46] shrink-0 ml-1" />
                 </div>
 
                 {/* SVG Spline Wave Curve */}
-                <div className="relative h-12 w-full flex items-center justify-center">
+                <div className="relative h-8 w-full flex items-center justify-center">
                   <svg className="w-full h-full absolute inset-0" viewBox="0 0 300 60" fill="none" preserveAspectRatio="none">
-                    <path className="spline-path" d="M0,35 Q40,48 80,30 T160,20 T240,45 T300,25" stroke="#ED7B46" stroke-width="2.5" fill="none" />
-                    <circle cx="80" cy="30" r="4" fill="#FFFFFF" stroke="#ED7B46" stroke-width="2" />
-                    <circle cx="160" cy="20" r="4" fill="#FFFFFF" stroke="#ED7B46" stroke-width="2" />
-                    <circle cx="240" cy="45" r="4" fill="#FFFFFF" stroke="#ED7B46" stroke-width="2" />
+                    <path className="spline-path" d="M0,35 Q40,48 80,30 T160,20 T240,45 T300,25" stroke="#ED7B46" strokeWidth="2.5" fill="none" />
+                    <circle cx="80" cy="30" r="3.5" fill="#FFFFFF" stroke="#ED7B46" strokeWidth="2" />
+                    <circle cx="160" cy="20" r="3.5" fill="#FFFFFF" stroke="#ED7B46" strokeWidth="2" />
+                    <circle cx="240" cy="45" r="3.5" fill="#FFFFFF" stroke="#ED7B46" strokeWidth="2" />
                   </svg>
                 </div>
 
                 {/* Live Hash / Status Footer */}
-                <div className="mt-1 pt-1 border-t border-slate-200/60 flex items-center justify-between text-[9px] font-mono">
-                  <span className="text-slate-500 truncate max-w-[140px]">
-                    {showcaseHash ? `${showcaseHash.sha256.substring(0, 14)}...` : 'Awaiting document...'}
+                <div className="mt-0.5 pt-0.5 border-t border-slate-200/60 flex items-center justify-between text-[8px] font-mono">
+                  <span className="text-slate-500 truncate max-w-[120px]">
+                    {showcaseHash ? `${showcaseHash.sha256.substring(0, 12)}...` : 'Awaiting document...'}
                   </span>
                   {showcaseStatus && (
                     <span className={`px-1.5 py-0.2 rounded font-bold ${
@@ -340,7 +374,7 @@ export default function Home() {
                         ? 'bg-amber-100 text-amber-800'
                         : 'bg-rose-100 text-rose-800'
                     }`}>
-                      {showcaseStatus.status === 'clean' ? 'Bersih' : (showcaseStatus.status === 'participated' ? 'Pernah Ikut' : 'Mirip')}
+                      {showcaseStatus.status === 'clean' ? 'Clean' : (showcaseStatus.status === 'participated' ? 'Prior' : 'Match')}
                     </span>
                   )}
                 </div>
@@ -348,13 +382,13 @@ export default function Home() {
             </div>
 
             {/* Bottom Pill Buttons: Adelhorn & Motrew */}
-            <div className="grid grid-cols-2 gap-2 pt-1">
+            <div className="grid grid-cols-2 gap-2 pt-0.5">
               <button 
                 onClick={(e) => {
                   e.stopPropagation();
                   scrollToWorkspace('cek');
                 }}
-                className="w-full py-2.5 px-3 rounded-full bg-white/80 hover:bg-white text-slate-800 text-[11px] font-semibold shadow-sm border border-white/90 transition-all text-center"
+                className="w-full py-2 px-3 rounded-full bg-white/80 hover:bg-white text-slate-800 text-[11px] font-semibold shadow-sm border border-white/90 transition-all text-center"
               >
                 Adelhorn
               </button>
@@ -363,7 +397,7 @@ export default function Home() {
                   e.stopPropagation();
                   scrollToWorkspace('daftarkan');
                 }}
-                className="w-full py-2.5 px-3 rounded-full bg-[#ED7B46] hover:bg-[#E06336] text-white text-[11px] font-semibold shadow-md transition-all text-center"
+                className="w-full py-2 px-3 rounded-full bg-[#ED7B46] hover:bg-[#E06336] text-white text-[11px] font-semibold shadow-md transition-all text-center"
               >
                 Motrew
               </button>
@@ -373,19 +407,19 @@ export default function Home() {
           {/* CARD 3: ertads (Slate Navy #3D4A60) */}
           <div 
             onClick={() => setCenterIndex(3)}
-            className={`absolute w-[280px] sm:w-[300px] h-[460px] rounded-[30px] bg-[#3D4A60] p-6 text-white shadow-xl flex flex-col justify-between transition-all duration-700 ease-in-out ${getSlotClass(3)}`}
+            className={`absolute w-[270px] sm:w-[290px] h-[340px] rounded-[26px] bg-[#3D4A60] p-5 text-white shadow-xl flex flex-col justify-between transition-all duration-700 ease-in-out ${getSlotClass(3)}`}
           >
             <div>
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-xs font-mono text-white/60">INTEGRITY</span>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[10px] font-mono text-white/60">INTEGRITY</span>
                 <span className="text-xs text-white/60">• •</span>
               </div>
-              <h3 className="text-2xl font-bold mb-2">ertads</h3>
-              <p className="text-white/70 text-xs leading-relaxed mb-6 font-normal">
+              <h3 className="text-xl font-bold mb-1">ertads</h3>
+              <p className="text-white/70 text-xs leading-relaxed mb-3 line-clamp-2 font-normal">
                 Decentralized validation matrix for hackathon integrity assurance.
               </p>
 
-              <div className="bg-black/20 rounded-2xl p-4 space-y-3 mb-6">
+              <div className="bg-black/20 rounded-xl p-3 space-y-2 mb-3">
                 <div className="flex justify-between items-center text-xs">
                   <span className="text-white/70">Revert Prevention</span>
                   <span className="font-mono font-bold text-emerald-400">28%</span>
@@ -399,7 +433,7 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="py-2.5 px-4 rounded-full bg-white/10 text-center text-xs font-semibold">
+              <div className="py-2 px-3 rounded-full bg-white/10 text-center text-xs font-semibold">
                 New
               </div>
             </div>
@@ -409,35 +443,35 @@ export default function Home() {
           {/* CARD 4: Registry (Ice Blue #DCE5EC) */}
           <div 
             onClick={() => setCenterIndex(4)}
-            className={`absolute w-[280px] sm:w-[300px] h-[460px] rounded-[30px] bg-[#DCE5EC] p-6 text-[#2D3748] shadow-xl flex flex-col justify-between transition-all duration-700 ease-in-out ${getSlotClass(4)}`}
+            className={`absolute w-[270px] sm:w-[290px] h-[340px] rounded-[26px] bg-[#DCE5EC] p-5 text-[#2D3748] shadow-xl flex flex-col justify-between transition-all duration-700 ease-in-out ${getSlotClass(4)}`}
           >
             <div>
-              <div className="flex items-center justify-end mb-4">
-                <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm">
-                  <svg className="w-4 h-4 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              <div className="flex items-center justify-end mb-2">
+                <div className="w-7 h-7 rounded-full bg-white flex items-center justify-center shadow-sm">
+                  <svg className="w-3.5 h-3.5 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
                   </svg>
                 </div>
               </div>
-              <h3 className="text-xl font-bold mb-2 text-slate-800">Registry</h3>
-              <p className="text-slate-600 text-xs leading-relaxed mb-6 font-normal">
+              <h3 className="text-lg font-bold mb-1 text-slate-800">Registry</h3>
+              <p className="text-slate-600 text-xs leading-relaxed mb-3 line-clamp-2 font-normal">
                 Immutable cryptographic fingerprints on BOT Chain ledger.
               </p>
               
-              <div className="space-y-2">
-                <div className="p-3 bg-white/80 rounded-2xl text-[11px] font-mono shadow-sm">
+              <div className="space-y-1.5">
+                <div className="p-2.5 bg-white/80 rounded-xl text-xs font-mono shadow-sm">
                   <div className="text-slate-400 text-[9px]">LAST HASH</div>
                   <div className="font-bold truncate text-slate-800">0x6b86b...5b4b</div>
                 </div>
-                <div className="p-3 bg-white/80 rounded-2xl text-[11px] font-mono shadow-sm">
+                <div className="p-2.5 bg-white/80 rounded-xl text-xs font-mono shadow-sm">
                   <div className="text-slate-400 text-[9px]">STATUS</div>
                   <div className="font-bold text-emerald-600">Finalized</div>
                 </div>
               </div>
             </div>
             <div className="flex items-center justify-between text-slate-400">
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
               <span className="text-[10px] font-mono">JURY #01</span>
             </div>
@@ -451,9 +485,9 @@ export default function Home() {
             <button
               key={idx}
               onClick={() => setCenterIndex(idx)}
-              aria-label={`Pilih Kartu ${idx + 1}`}
+              aria-label={`Select Card ${idx + 1}`}
               className={`h-2 rounded-full transition-all duration-300 ${
-                centerIndex === idx ? 'w-6 bg-[#ED7B46]' : 'w-2 bg-slate-300 hover:bg-slate-400'
+                centerIndex === idx ? 'w-6 bg-[#ED7B46]' : 'w-2 bg-slate-300 hover:bg-slate-400 dark:bg-slate-700 dark:hover:bg-slate-600'
               }`}
             />
           ))}
@@ -461,134 +495,92 @@ export default function Home() {
 
       </section>
 
-      {/* WORKSPACE SECTION (Field & Fitur Asli di Bawah) */}
-      <section ref={workspaceRef} className="w-full bg-white border-t border-slate-200 py-12 px-4 sm:px-6 lg:px-8 shadow-inner">
-        <div className="max-w-5xl mx-auto">
+      {/* WORKSPACE SECTION */}
+      <section ref={workspaceRef} className="scroll-mt-16 w-full min-h-[calc(100vh-4rem)] bg-white dark:bg-[#1E1E1E] border-t border-slate-200 dark:border-slate-800 py-12 px-4 sm:px-6 lg:px-8 shadow-inner overflow-hidden transition-colors duration-200">
+        <div className="max-w-5xl mx-auto overflow-hidden">
           
-          {/* Workspace Tabs Navigation */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-slate-200 pb-5 mb-8 gap-4">
-            <div>
-              <div className="flex items-center gap-2">
-                <Layers className="w-5 h-5 text-[#ED7B46]" />
-                <h2 className="text-xl font-bold text-slate-900">Area Kerja Registry LKTI</h2>
-              </div>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Gunakan modul di bawah ini untuk memproses verifikasi berkas, mendaftarkan naskah, atau mengelola kompetisi.
-              </p>
-            </div>
+          {/* ACTIVE WORKSPACE VIEW WITH DIRECTIONAL ANIMATION */}
+          <div 
+            key={activeTab} 
+            className={`w-full ${slideDirection === 'forward' ? 'page-slide-forward' : 'page-slide-backward'}`}
+          >
+            {activeTab === 'cek' && (
+              <CekNaskahView showToast={showToast} />
+            )}
 
-            <div className="flex items-center gap-1.5 bg-slate-100 p-1.5 rounded-2xl border border-slate-200 self-stretch sm:self-auto overflow-x-auto">
-              <button
-                onClick={() => setActiveTab('cek')}
-                className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all whitespace-nowrap ${
-                  activeTab === 'cek' 
-                    ? 'bg-white text-slate-900 shadow-sm border border-slate-200/80' 
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                <FileCheck className="w-3.5 h-3.5 text-[#ED7B46]" />
-                <span>1. Cek Naskah</span>
-              </button>
-              <button
-                onClick={() => setActiveTab('daftarkan')}
-                className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all whitespace-nowrap ${
-                  activeTab === 'daftarkan' 
-                    ? 'bg-white text-slate-900 shadow-sm border border-slate-200/80' 
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                <Shield className="w-3.5 h-3.5 text-[#ED7B46]" />
-                <span>2. Daftarkan Naskah</span>
-              </button>
-              <button
-                onClick={() => setActiveTab('panitia')}
-                className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all whitespace-nowrap ${
-                  activeTab === 'panitia' 
-                    ? 'bg-white text-slate-900 shadow-sm border border-slate-200/80' 
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                <Award className="w-3.5 h-3.5 text-[#ED7B46]" />
-                <span>3. Dashboard Panitia</span>
-              </button>
-              <button
-                onClick={() => setActiveTab('detail')}
-                className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all whitespace-nowrap ${
-                  activeTab === 'detail' 
-                    ? 'bg-white text-slate-900 shadow-sm border border-slate-200/80' 
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                <FileText className="w-3.5 h-3.5 text-[#ED7B46]" />
-                <span>4. Detail & Linimasa</span>
-              </button>
-            </div>
+            {activeTab === 'daftarkan' && (
+              <DaftarkanView 
+                walletState={walletState} 
+                connectWallet={connectWallet}
+                showToast={showToast}
+                setActiveTab={scrollToWorkspace}
+              />
+            )}
+
+            {activeTab === 'panitia' && (
+              <DashboardPanitiaView 
+                walletState={walletState} 
+                connectWallet={connectWallet}
+                showToast={showToast}
+                setActiveTab={scrollToWorkspace}
+              />
+            )}
+
+            {activeTab === 'detail' && (
+              <DetailNaskahView 
+                walletState={walletState} 
+                showToast={showToast}
+              />
+            )}
           </div>
-
-          {/* ACTIVE WORKSPACE VIEW */}
-          {activeTab === 'cek' && (
-            <CekNaskahView showToast={showToast} />
-          )}
-
-          {activeTab === 'daftarkan' && (
-            <DaftarkanView 
-              walletState={walletState} 
-              connectWallet={connectWallet}
-              showToast={showToast}
-              setActiveTab={setActiveTab}
-            />
-          )}
-
-          {activeTab === 'panitia' && (
-            <DashboardPanitiaView 
-              walletState={walletState}
-              connectWallet={connectWallet}
-              showToast={showToast}
-              setActiveTab={setActiveTab}
-            />
-          )}
-
-          {activeTab === 'detail' && (
-            <DetailNaskahView 
-              walletState={walletState}
-              showToast={showToast}
-            />
-          )}
 
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="w-full border-t border-slate-200 bg-white py-6 px-4">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 font-mono gap-3">
+      <footer className="w-full border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-[#1E1E1E] py-6 px-4 transition-colors duration-200">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 dark:text-slate-400 font-mono gap-3">
           <div className="flex items-center gap-2">
-            <Shield className="w-4 h-4 text-[#ED7B46]" />
-            <span>LKTI Registry Protocol • Standar Integritas Karya Ilmiah Mahasiswa</span>
+            <img src="/logo.svg" alt="PaperCheck" className="w-4 h-4 object-contain" />
+            <span>PaperCheck Protocol • Decentralized Academic Manuscript Integrity</span>
           </div>
           <div className="flex items-center gap-4 text-[11px]">
             <span>Base Sepolia L2</span>
             <span>•</span>
-            <span>Privasi Client-Side</span>
+            <span>Client-Side Privacy</span>
           </div>
         </div>
       </footer>
 
-      {/* Floating Toast Notification */}
+      {/* Floating Toast Notification (Minimalist Sonner/Linear Style) */}
       {toast && (
-        <div className="fixed bottom-6 right-6 z-50 acrylic-card border border-white/90 rounded-2xl p-4 shadow-xl flex items-start gap-3 max-w-md animate-in slide-in-from-bottom-4 duration-200">
-          <div className="mt-0.5 shrink-0">
-            {toast.type === 'success' && <CheckCircle className="w-5 h-5 text-emerald-600" />}
-            {toast.type === 'error' && <AlertCircle className="w-5 h-5 text-rose-600" />}
-            {toast.type === 'warning' && <AlertCircle className="w-5 h-5 text-amber-600" />}
-            {toast.type === 'info' && <Info className="w-5 h-5 text-[#ED7B46]" />}
+        <div 
+          key={toast.id || toast.title}
+          className="fixed bottom-6 right-6 z-50 flex items-start gap-3 w-auto max-w-sm sm:max-w-md bg-white/95 dark:bg-[#262626]/95 backdrop-blur-xl rounded-2xl px-4 py-3.5 border border-slate-200/90 dark:border-[#383838] shadow-[0_12px_36px_-6px_rgba(0,0,0,0.12),0_4px_12px_-2px_rgba(0,0,0,0.06)] dark:shadow-[0_12px_36px_-6px_rgba(0,0,0,0.6),0_4px_12px_-2px_rgba(0,0,0,0.3)] toast-animate-in select-none"
+        >
+          {/* Status Icon */}
+          <div className="shrink-0 mt-0.5">
+            {toast.type === 'success' && <CheckCircle className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />}
+            {toast.type === 'error' && <AlertCircle className="w-4 h-4 text-rose-600 dark:text-rose-400" />}
+            {toast.type === 'warning' && <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400" />}
+            {toast.type === 'info' && <Info className="w-4 h-4 text-[#ED7B46]" />}
           </div>
-          <div className="flex-1 pr-2">
-            <h4 className="font-bold text-xs text-slate-900">{toast.title}</h4>
-            <p className="text-[11px] text-slate-600 mt-0.5 leading-relaxed">{toast.message}</p>
+
+          {/* Typography */}
+          <div className="flex-1 min-w-0 pr-1">
+            <h4 className="text-xs font-semibold text-slate-900 dark:text-white tracking-tight leading-snug">
+              {toast.title}
+            </h4>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed mt-0.5 font-normal">
+              {toast.message}
+            </p>
           </div>
+
+          {/* Close button */}
           <button 
             onClick={() => setToast(null)}
-            className="text-slate-400 hover:text-slate-600 p-1"
+            className="text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-200 transition-colors p-0.5 -mr-1 -mt-0.5 shrink-0"
+            aria-label="Close notification"
           >
             <X className="w-3.5 h-3.5" />
           </button>

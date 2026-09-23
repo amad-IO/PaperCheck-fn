@@ -9,19 +9,19 @@ import { addParticipationLocal, checkManuscriptRegistry } from '../../lib/mockRe
 export default function DashboardPanitiaView({ walletState, connectWallet, showToast, setActiveTab }) {
   const [panitiaTab, setPanitiaTab] = useState('batch'); // 'batch' | 'buat' | 'verifikasi'
 
-  // Form Buat Lomba
+  // Competition Creation Form State
   const [competitionForm, setCompetitionForm] = useState({
     name: '',
     year: new Date().getFullYear().toString(),
-    category: 'Teknologi & Inovasi',
-    institutionDomain: 'lkti.unm.ac.id'
+    category: 'Technology & Innovation',
+    institutionDomain: 'symposium.university.edu'
   });
 
-  // Verifikasi Domain State
+  // Domain Verification State
   const [domainStatus, setDomainStatus] = useState({
-    domain: 'lkti.unm.ac.id',
+    domain: 'symposium.university.edu',
     isVerified: true,
-    dnsTxtRecord: `lkti-verify=${walletState.address || '0x71C8364437a90961f84582042a552746b34571Cd'}`
+    dnsTxtRecord: `papercheck-verify=${walletState.address || '0x71C8364437a90961f84582042a552746b34571Cd'}`
   });
   const [isCheckingDomain, setIsCheckingDomain] = useState(false);
 
@@ -36,7 +36,7 @@ export default function DashboardPanitiaView({ walletState, connectWallet, showT
 
     const files = Array.from(e.target.files);
     setIsProcessingBatch(true);
-    showToast('Memproses Berkas', `Mengekstrak teks dari ${files.length} naskah...`, 'info');
+    showToast('Processing Files', `Extracting text from ${files.length} manuscripts...`, 'info');
 
     try {
       const parsedList = [];
@@ -56,20 +56,20 @@ export default function DashboardPanitiaView({ walletState, connectWallet, showT
             title: cleanTitle,
             sha256: fp.sha256,
             simHash: fp.simHash,
-            status: 'Peserta', // Default: Peserta | Finalis | Juara
+            status: 'Participant', // Default: Participant | Finalist | Winner
             similarityScore: registryCheck.similarityPercentage || 0,
             hasConflict: registryCheck.status !== 'clean'
           });
         } catch (err) {
-          console.warn(`Gagal memproses file ${file.name}:`, err);
+          console.warn(`Failed to process file ${file.name}:`, err);
         }
       }
 
       setBatchFiles(prev => [...prev, ...parsedList]);
-      showToast('Parsing Selesai', `${parsedList.length} naskah siap dicatatkan ke smart contract.`, 'success');
+      showToast('Parsing Complete', `${parsedList.length} manuscripts ready to record on-chain.`, 'success');
     } catch (err) {
       console.error(err);
-      showToast('Gagal Memproses Batch', err.message, 'error');
+      showToast('Batch Processing Failed', err.message, 'error');
     } finally {
       setIsProcessingBatch(false);
     }
@@ -81,18 +81,18 @@ export default function DashboardPanitiaView({ walletState, connectWallet, showT
 
   const handleBatchSubmit = async () => {
     if (!walletState.isConnected) {
-      showToast('Koneksi Diperlukan', 'Hubungkan wallet panitia untuk menandatangani pencatatan massal.', 'warning');
+      showToast('Connection Required', 'Connect committee wallet to sign bulk registrations.', 'warning');
       connectWallet();
       return;
     }
 
     if (batchFiles.length === 0) {
-      showToast('Naskah Kosong', 'Unggah berkas naskah terlebih dahulu.', 'warning');
+      showToast('No Files Uploaded', 'Please upload manuscript files first.', 'warning');
       return;
     }
 
     setIsSubmittingBatch(true);
-    showToast('Menyiapkan Transaksi Massal', `Mencatat ${batchFiles.length} naskah on-chain via Base Sepolia...`, 'info');
+    showToast('Preparing Batch Transaction', `Writing ${batchFiles.length} manuscripts on-chain via Base Sepolia...`, 'info');
 
     try {
       await new Promise(r => setTimeout(r, 2000));
@@ -101,22 +101,22 @@ export default function DashboardPanitiaView({ walletState, connectWallet, showT
       for (const item of batchFiles) {
         addParticipationLocal({
           contentHash: item.sha256,
-          competitionName: competitionForm.name || 'PIMNAS & LKTI Nasional 2026',
+          competitionName: competitionForm.name || 'National Science Symposium 2026',
           year: competitionForm.year,
           category: competitionForm.category,
           status: item.status,
           recordedBy: walletState.address,
-          recorderName: 'BEM / Panitia Resmi',
+          recorderName: 'Official Committee',
           domain: domainStatus.domain,
           badge: domainStatus.isVerified ? 'domain_verified' : 'anonymous'
         });
       }
 
-      showToast('Batch Selesai Dicatat', `Seluruh ${batchFiles.length} naskah berhasil dicatat secara permanen.`, 'success');
+      showToast('Batch Recorded Successfully', `All ${batchFiles.length} manuscripts have been permanently recorded.`, 'success');
       setBatchFiles([]);
     } catch (err) {
       console.error(err);
-      showToast('Gagal Mencatat', err.message, 'error');
+      showToast('Registration Failed', err.message, 'error');
     } finally {
       setIsSubmittingBatch(false);
     }
@@ -124,12 +124,12 @@ export default function DashboardPanitiaView({ walletState, connectWallet, showT
 
   const handleVerifyDomain = async () => {
     setIsCheckingDomain(true);
-    showToast('Memeriksa DNS TXT', `Menghubungi nameserver untuk domain ${domainStatus.domain}...`, 'info');
+    showToast('Checking DNS TXT', `Querying nameservers for domain ${domainStatus.domain}...`, 'info');
 
     setTimeout(() => {
       setIsCheckingDomain(false);
       setDomainStatus(prev => ({ ...prev, isVerified: true }));
-      showToast('Domain Terverifikasi', `DNS TXT record cocok dengan wallet ${walletState.address ? walletState.address.substring(0, 6) + '...' : 'panitia'}.`, 'success');
+      showToast('Domain Verified', `DNS TXT record matches wallet ${walletState.address ? walletState.address.substring(0, 6) + '...' : 'committee'}.`, 'success');
     }, 1800);
   };
 
@@ -137,99 +137,107 @@ export default function DashboardPanitiaView({ walletState, connectWallet, showT
     <div className="w-full max-w-4xl mx-auto space-y-8 pb-16">
       
       {/* Header */}
-      <section className="text-center space-y-2 pt-4">
-        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-slate-900">
-          Dashboard Panitia Lomba
+      <section className="text-center space-y-3 pt-4 sm:pt-6">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 dark:bg-[#262626] border border-slate-200 dark:border-[#383838] text-xs font-mono text-slate-700 dark:text-slate-300">
+          <ShieldCheck className="w-3.5 h-3.5 text-brand-primary" />
+          <span>Institutional Multi-Sig Jury & Verifiable Award Attestation</span>
+        </div>
+        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-slate-900 dark:text-white">
+          Competition Committee Dashboard
         </h1>
-        <p className="text-slate-600 text-xs sm:text-sm max-w-xl mx-auto">
-          Kelola kompetisi, verifikasi kredibilitas domain kampus, dan catat hasil naskah juara secara kolektif on-chain.
+        <p className="text-slate-600 dark:text-slate-400 text-xs sm:text-sm max-w-xl mx-auto">
+          Manage competitions, verify institution domain credibility, and record award outcomes on-chain in bulk.
         </p>
       </section>
 
       {/* Domain Verification Notice Banner */}
-      <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="bg-slate-50 dark:bg-[#262626] border border-slate-200 dark:border-[#383838] rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition-colors">
         <div className="flex items-center gap-3">
           <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
-            domainStatus.isVerified ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
+            domainStatus.isVerified 
+              ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400' 
+              : 'bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400'
           }`}>
             <Globe className="w-5 h-5" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-xs font-bold text-slate-900">Domain Institusi Panitia:</span>
-              <span className="font-mono text-xs text-brand-700 font-semibold">{domainStatus.domain}</span>
+              <span className="text-xs font-bold text-slate-900 dark:text-slate-100">Committee Institutional Domain:</span>
+              <span className="font-mono text-xs text-brand-700 dark:text-[#F5A87B] font-semibold">{domainStatus.domain}</span>
               {domainStatus.isVerified ? (
-                <span className="px-2 py-0.2 rounded-full text-[10px] font-mono font-bold bg-emerald-100 text-emerald-800">
-                  Terverifikasi
+                <span className="px-2 py-0.2 rounded-full text-[10px] font-mono font-bold bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300">
+                  Verified
                 </span>
               ) : (
-                <span className="px-2 py-0.2 rounded-full text-[10px] font-mono font-bold bg-amber-100 text-amber-800">
-                  Belum Verifikasi
+                <span className="px-2 py-0.2 rounded-full text-[10px] font-mono font-bold bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300">
+                  Unverified
                 </span>
               )}
             </div>
-            <p className="text-[11px] text-slate-500 mt-0.5">
-              Catatan hasil lomba akan memperoleh lencana <strong>Terverifikasi Domain</strong> di mata publik.
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+              Recorded paper entries will receive a public <strong>Domain Verified</strong> credibility badge.
             </p>
           </div>
         </div>
 
         <button
           onClick={() => setPanitiaTab('verifikasi')}
-          className="px-3.5 py-1.5 rounded-xl border border-slate-300 hover:bg-white text-slate-700 text-xs font-semibold shrink-0"
+          className="px-3.5 py-1.5 rounded-xl border border-slate-300 dark:border-[#383838] hover:bg-white dark:hover:bg-[#303030] text-slate-700 dark:text-slate-300 text-xs font-semibold shrink-0 transition-colors"
         >
-          Konfigurasi DNS
+          Configure DNS
         </button>
       </div>
 
       {/* Main Action Tabs */}
-      <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-card space-y-6">
+      <div className="bg-white dark:bg-[#262626] border border-slate-200 dark:border-[#383838] rounded-3xl p-6 sm:p-8 shadow-card space-y-6 transition-colors duration-200">
         
-        <div className="flex items-center gap-2 border-b border-slate-100 pb-4">
-          <button
-            onClick={() => setPanitiaTab('batch')}
-            className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
-              panitiaTab === 'batch' 
-                ? 'bg-slate-900 text-white shadow-sm' 
-                : 'text-slate-600 hover:bg-slate-100'
-            }`}
-          >
-            Catat Hasil Kolektif (Batch)
-          </button>
-          <button
-            onClick={() => setPanitiaTab('buat')}
-            className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
-              panitiaTab === 'buat' 
-                ? 'bg-slate-900 text-white shadow-sm' 
-                : 'text-slate-600 hover:bg-slate-100'
-            }`}
-          >
-            Buat Lomba Baru
-          </button>
-          <button
-            onClick={() => setPanitiaTab('verifikasi')}
-            className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
-              panitiaTab === 'verifikasi' 
-                ? 'bg-slate-900 text-white shadow-sm' 
-                : 'text-slate-600 hover:bg-slate-100'
-            }`}
-          >
-            Verifikasi Domain (DNS)
-          </button>
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800/80 pb-4">
+          <div className="flex flex-wrap items-center gap-1.5 p-1 rounded-full bg-slate-100/90 dark:bg-[#1E1E1E] border border-slate-200/80 dark:border-[#383838]">
+            <button
+              onClick={() => setPanitiaTab('batch')}
+              className={`px-4 py-2 rounded-full text-xs font-semibold transition-all ${
+                panitiaTab === 'batch' 
+                  ? 'bg-gradient-to-r from-[#ED7B46] to-[#EA580C] text-white shadow-sm shadow-orange-500/25' 
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-[#2a2a2a]'
+              }`}
+            >
+              Record Batch Results
+            </button>
+            <button
+              onClick={() => setPanitiaTab('buat')}
+              className={`px-4 py-2 rounded-full text-xs font-semibold transition-all ${
+                panitiaTab === 'buat' 
+                  ? 'bg-gradient-to-r from-[#ED7B46] to-[#EA580C] text-white shadow-sm shadow-orange-500/25' 
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-[#2a2a2a]'
+              }`}
+            >
+              Create Competition
+            </button>
+            <button
+              onClick={() => setPanitiaTab('verifikasi')}
+              className={`px-4 py-2 rounded-full text-xs font-semibold transition-all ${
+                panitiaTab === 'verifikasi' 
+                  ? 'bg-gradient-to-r from-[#ED7B46] to-[#EA580C] text-white shadow-sm shadow-orange-500/25' 
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-[#2a2a2a]'
+              }`}
+            >
+              Domain Verification (DNS)
+            </button>
+          </div>
         </div>
 
-        {/* TAB 1: CATAT HASIL BATCH (MULTI-FILE UPLOAD) */}
+        {/* TAB 1: RECORD BATCH RESULTS (MULTI-FILE UPLOAD) */}
         {panitiaTab === 'batch' && (
           <div className="space-y-5">
             <div>
-              <h2 className="text-base font-bold text-slate-900">Catat Hasil Naskah Kolektif (Batch Upload)</h2>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Unggah banyak berkas naskah sekaligus untuk menandai status Peserta, Finalis, atau Juara dalam satu transaksi on-chain.
+              <h2 className="text-base font-bold text-slate-900 dark:text-white">Record Paper Results in Bulk (Batch Upload)</h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                Upload multiple manuscripts at once to assign Participant, Finalist, or Winner awards in a single on-chain transaction.
               </p>
             </div>
 
             {/* Upload multi files dropzone */}
-            <div className="border-2 border-dashed border-slate-200 hover:border-brand-primary rounded-2xl p-6 text-center cursor-pointer transition-colors bg-slate-50/50">
+            <div className="border-2 border-dashed border-slate-200 dark:border-[#383838] hover:border-brand-primary rounded-2xl p-6 text-center cursor-pointer transition-colors bg-slate-50/50 dark:bg-[#1E1E1E]/50">
               <input
                 type="file"
                 multiple
@@ -240,11 +248,11 @@ export default function DashboardPanitiaView({ walletState, connectWallet, showT
               />
               <label htmlFor="batch-file-input" className="cursor-pointer space-y-2 block">
                 <UploadCloud className="w-9 h-9 text-brand-primary mx-auto" />
-                <div className="text-xs font-semibold text-slate-800">
-                  {isProcessingBatch ? 'Sedang mengekstrak berkas...' : 'Pilih Banyak Naskah Sekaligus (Multi-select PDF/DOCX)'}
+                <div className="text-xs font-semibold text-slate-800 dark:text-slate-200">
+                  {isProcessingBatch ? 'Extracting documents...' : 'Select Multiple Manuscripts (Multi-select PDF / DOCX)'}
                 </div>
-                <div className="text-[11px] text-slate-400 font-mono">
-                  Sistem mengekstrak judul dan menghitung sidik jari secara otomatis
+                <div className="text-[11px] text-slate-400 dark:text-slate-500 font-mono">
+                  Automatically extracts titles and computes dual cryptographic fingerprints
                 </div>
               </label>
             </div>
@@ -253,45 +261,45 @@ export default function DashboardPanitiaView({ walletState, connectWallet, showT
             {batchFiles.length > 0 && (
               <div className="space-y-4">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="font-semibold text-slate-900 font-mono">
-                    Daftar Naskah Siap Dicatat ({batchFiles.length} berkas):
+                  <span className="font-semibold text-slate-900 dark:text-slate-100 font-mono">
+                    Manuscripts Ready to Record ({batchFiles.length} files):
                   </span>
                   <button 
                     onClick={() => setBatchFiles([])}
                     className="text-slate-400 hover:text-rose-600 font-mono text-[11px]"
                   >
-                    Kosongkan Tabel
+                    Clear Table
                   </button>
                 </div>
 
-                <div className="overflow-x-auto border border-slate-200 rounded-xl shadow-sm">
+                <div className="overflow-x-auto border border-slate-200 dark:border-[#383838] rounded-xl shadow-sm">
                   <table className="w-full text-left text-xs">
-                    <thead className="bg-slate-50 border-b border-slate-200 font-mono font-semibold text-slate-700">
+                    <thead className="bg-slate-50 dark:bg-[#1E1E1E] border-b border-slate-200 dark:border-[#383838] font-mono font-semibold text-slate-700 dark:text-slate-300">
                       <tr>
-                        <th className="py-2.5 px-3">Nama Berkas & Judul</th>
+                        <th className="py-2.5 px-3">File Name & Title</th>
                         <th className="py-2.5 px-3">Fingerprint</th>
-                        <th className="py-2.5 px-3">Kemiripan</th>
-                        <th className="py-2.5 px-3">Status Penetapan</th>
+                        <th className="py-2.5 px-3">Similarity</th>
+                        <th className="py-2.5 px-3">Award / Status</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100 text-slate-700">
+                    <tbody className="divide-y divide-slate-100 dark:divide-[#383838] text-slate-700 dark:text-slate-300">
                       {batchFiles.map((item) => (
-                        <tr key={item.id} className="hover:bg-slate-50/60 transition-colors">
+                        <tr key={item.id} className="hover:bg-slate-50/60 dark:hover:bg-[#1E1E1E]/60 transition-colors">
                           <td className="py-3 px-3">
-                            <div className="font-medium text-slate-900 truncate max-w-[220px]">{item.fileName}</div>
-                            <div className="text-[11px] text-slate-500 truncate max-w-[220px]">{item.title}</div>
+                            <div className="font-medium text-slate-900 dark:text-slate-100 truncate max-w-[220px]">{item.fileName}</div>
+                            <div className="text-[11px] text-slate-500 dark:text-slate-400 truncate max-w-[220px]">{item.title}</div>
                           </td>
-                          <td className="py-3 px-3 font-mono text-[10px] text-slate-500">
+                          <td className="py-3 px-3 font-mono text-[10px] text-slate-500 dark:text-slate-400">
                             <div className="truncate max-w-[120px]">{item.sha256}</div>
                           </td>
                           <td className="py-3 px-3">
                             {item.hasConflict ? (
-                              <span className="px-2 py-0.5 rounded-full font-mono text-[10px] bg-rose-100 text-rose-800 font-bold">
-                                {item.similarityScore}% Mirip
+                              <span className="px-2 py-0.5 rounded-full font-mono text-[10px] bg-rose-100 dark:bg-rose-950/60 text-rose-800 dark:text-rose-300 font-bold border border-rose-200 dark:border-rose-800/40">
+                                {item.similarityScore}% Similar
                               </span>
                             ) : (
-                              <span className="px-2 py-0.5 rounded-full font-mono text-[10px] bg-emerald-100 text-emerald-800">
-                                0% Bersih
+                              <span className="px-2 py-0.5 rounded-full font-mono text-[10px] bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/40">
+                                0% Clean
                               </span>
                             )}
                           </td>
@@ -299,11 +307,11 @@ export default function DashboardPanitiaView({ walletState, connectWallet, showT
                             <select
                               value={item.status}
                               onChange={(e) => handleStatusChange(item.id, e.target.value)}
-                              className="bg-white border border-slate-300 rounded-lg py-1 px-2 text-xs font-semibold focus:outline-none focus:border-brand-primary"
+                              className="bg-white dark:bg-[#1E1E1E] border border-slate-300 dark:border-[#383838] text-slate-800 dark:text-slate-200 rounded-lg py-1 px-2 text-xs font-semibold focus:outline-none focus:border-brand-primary"
                             >
-                              <option value="Peserta">Peserta</option>
-                              <option value="Finalis">Finalis</option>
-                              <option value="Juara">Juara</option>
+                              <option value="Participant" className="bg-white dark:bg-[#1E1E1E] text-slate-800 dark:text-slate-200">Participant</option>
+                              <option value="Finalist" className="bg-white dark:bg-[#1E1E1E] text-slate-800 dark:text-slate-200">Finalist</option>
+                              <option value="Winner" className="bg-white dark:bg-[#1E1E1E] text-slate-800 dark:text-slate-200">Winner</option>
                             </select>
                           </td>
                         </tr>
@@ -319,7 +327,7 @@ export default function DashboardPanitiaView({ walletState, connectWallet, showT
                     className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-brand-primary hover:bg-brand-600 text-white text-xs font-semibold shadow-sm transition-all disabled:opacity-50"
                   >
                     <Send className="w-3.5 h-3.5" />
-                    <span>{isSubmittingBatch ? 'Mencatat On-Chain...' : 'Kirim On-Chain Bersamaan'}</span>
+                    <span>{isSubmittingBatch ? 'Writing On-Chain...' : 'Submit Bulk Records On-Chain'}</span>
                   </button>
                 </div>
               </div>
@@ -327,105 +335,105 @@ export default function DashboardPanitiaView({ walletState, connectWallet, showT
           </div>
         )}
 
-        {/* TAB 2: BUAT LOMBA */}
+        {/* TAB 2: CREATE COMPETITION */}
         {panitiaTab === 'buat' && (
           <div className="space-y-4 max-w-lg">
             <div>
-              <h2 className="text-base font-bold text-slate-900">Registrasi Lomba Baru</h2>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Daftarkan kompetisi pada smart contract agar tercatat resmi sebagai pihak penyelenggara.
+              <h2 className="text-base font-bold text-slate-900 dark:text-white">Register New Competition</h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                Register your competition on the smart contract to become recognized as an official organizer.
               </p>
             </div>
 
             <div className="space-y-3 pt-2">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Nama Kompetisi LKTI *</label>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Competition Name *</label>
                 <input
                   type="text"
                   value={competitionForm.name}
                   onChange={(e) => setCompetitionForm(prev => ({ ...prev, name: e.target.value }))}
-                  placeholder="Contoh: Lomba Karya Tulis Ilmiah Nasional Green Tech 2026"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 text-xs sm:text-sm text-slate-800 focus:outline-none focus:border-brand-primary"
+                  placeholder="e.g. National Green Tech Paper Symposium 2026"
+                  className="w-full bg-slate-50 dark:bg-[#1E1E1E] border border-slate-200 dark:border-[#383838] rounded-xl py-2 px-3 text-xs sm:text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-brand-primary"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Tahun Lomba *</label>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Competition Year *</label>
                   <input
                     type="number"
                     value={competitionForm.year}
                     onChange={(e) => setCompetitionForm(prev => ({ ...prev, year: e.target.value }))}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 text-xs sm:text-sm text-slate-800 focus:outline-none focus:border-brand-primary"
+                    className="w-full bg-slate-50 dark:bg-[#1E1E1E] border border-slate-200 dark:border-[#383838] rounded-xl py-2 px-3 text-xs sm:text-sm text-slate-800 dark:text-slate-100 focus:outline-none focus:border-brand-primary"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Kategori Utama *</label>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Primary Category *</label>
                   <input
                     type="text"
                     value={competitionForm.category}
                     onChange={(e) => setCompetitionForm(prev => ({ ...prev, category: e.target.value }))}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 text-xs sm:text-sm text-slate-800 focus:outline-none focus:border-brand-primary"
+                    className="w-full bg-slate-50 dark:bg-[#1E1E1E] border border-slate-200 dark:border-[#383838] rounded-xl py-2 px-3 text-xs sm:text-sm text-slate-800 dark:text-slate-100 focus:outline-none focus:border-brand-primary"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Domain Situs Kampus/Lomba *</label>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Official Institutional Domain *</label>
                 <input
                   type="text"
                   value={competitionForm.institutionDomain}
                   onChange={(e) => setCompetitionForm(prev => ({ ...prev, institutionDomain: e.target.value }))}
-                  placeholder="misal: lkti.unm.ac.id"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 text-xs sm:text-sm text-slate-800 focus:outline-none focus:border-brand-primary"
+                  placeholder="e.g. symposium.university.edu"
+                  className="w-full bg-slate-50 dark:bg-[#1E1E1E] border border-slate-200 dark:border-[#383838] rounded-xl py-2 px-3 text-xs sm:text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-brand-primary"
                 />
               </div>
             </div>
 
             <button
-              onClick={() => showToast('Lomba Dibuat', 'Kompetisi berhasil didaftarkan ke smart contract registry.', 'success')}
-              className="mt-2 flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold shadow-sm"
+              onClick={() => showToast('Competition Registered', 'Competition successfully registered on the smart contract registry.', 'success')}
+              className="mt-2 flex items-center gap-2 px-6 py-2.5 rounded-xl bg-brand-primary hover:bg-brand-600 text-white text-xs font-semibold shadow-sm transition-all active:scale-95"
             >
               <PlusCircle className="w-3.5 h-3.5" />
-              <span>Simpan & Daftarkan Lomba On-Chain</span>
+              <span>Save & Register Competition On-Chain</span>
             </button>
           </div>
         )}
 
-        {/* TAB 3: VERIFIKASI DOMAIN (DNS TXT) */}
+        {/* TAB 3: DOMAIN VERIFICATION (DNS TXT) */}
         {panitiaTab === 'verifikasi' && (
           <div className="space-y-4 max-w-xl">
             <div>
-              <h2 className="text-base font-bold text-slate-900">Verifikasi Domain Institusi</h2>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Buktikan bahwa wallet panitia terafiliasi dengan domain resmi universitas/lembaga melalui record DNS TXT.
+              <h2 className="text-base font-bold text-slate-900 dark:text-white">Institution Domain Verification</h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                Prove that your committee wallet is affiliated with your institution domain via a DNS TXT record.
               </p>
             </div>
 
-            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3 text-xs">
-              <div className="font-bold text-slate-800">Panduan Pemasangan DNS TXT:</div>
-              <ol className="list-decimal list-inside text-slate-600 space-y-1 leading-relaxed">
-                <li>Buka DNS management provider domain kampus Anda (misal: <code>unm.ac.id</code>).</li>
-                <li>Tambahkan satu record baru bertipe <strong>TXT</strong>.</li>
-                <li>Masukkan string verifikasi berikut pada kolom value:</li>
+            <div className="bg-slate-50 dark:bg-[#1E1E1E] border border-slate-200 dark:border-[#383838] rounded-2xl p-4 space-y-3 text-xs">
+              <div className="font-bold text-slate-800 dark:text-slate-200">DNS TXT Configuration Guide:</div>
+              <ol className="list-decimal list-inside text-slate-600 dark:text-slate-400 space-y-1 leading-relaxed">
+                <li>Open your institution domain DNS management panel (e.g. <code>university.edu</code>).</li>
+                <li>Add a new record of type <strong>TXT</strong>.</li>
+                <li>Enter the following verification string into the value/content field:</li>
               </ol>
 
-              <div className="p-2.5 bg-slate-900 text-emerald-400 font-mono text-[11px] rounded-lg break-all">
+              <div className="p-2.5 bg-slate-900 dark:bg-black/70 text-emerald-400 font-mono text-[11px] rounded-lg break-all border border-slate-800 dark:border-[#383838]">
                 {domainStatus.dnsTxtRecord}
               </div>
 
-              <p className="text-[11px] text-slate-500">
-                Setelah record DNS tersimpan, klik tombol di bawah untuk memeriksa validasi secara otomatis.
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                Once the DNS record is propagated, click the button below to verify automatically.
               </p>
             </div>
 
             <button
               onClick={handleVerifyDomain}
               disabled={isCheckingDomain}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-sm transition-all disabled:opacity-50"
+              className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-brand-primary hover:bg-brand-600 text-white text-xs font-semibold shadow-sm transition-all disabled:opacity-50 active:scale-95"
             >
               <ShieldCheck className="w-4 h-4" />
-              <span>{isCheckingDomain ? 'Mengecek Nameserver...' : 'Cek Verifikasi Domain Sekarang'}</span>
+              <span>{isCheckingDomain ? 'Querying Nameservers...' : 'Verify Domain Now'}</span>
             </button>
           </div>
         )}

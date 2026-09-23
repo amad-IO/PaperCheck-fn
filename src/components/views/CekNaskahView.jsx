@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { UploadCloud, FileText, CheckCircle2, Search, ArrowRight, Shield, AlertCircle, RefreshCw } from 'lucide-react';
 import { extractTextFromFile } from '../../lib/parser';
 import { generateDocumentFingerprint } from '../../lib/hasher';
@@ -20,6 +20,35 @@ export default function CekNaskahView({ showToast }) {
   const [inspectionResult, setInspectionResult] = useState(null);
 
   const fileInputRef = useRef(null);
+  const tabRefs = useRef({});
+  const [indicatorStyle, setIndicatorStyle] = useState({
+    left: 0,
+    width: 0,
+    ready: false,
+    animating: false,
+  });
+
+  useEffect(() => {
+    const updateIndicator = () => {
+      const activeEl = tabRefs.current[activeInputMode];
+      if (activeEl) {
+        setIndicatorStyle((prev) => ({
+          left: activeEl.offsetLeft,
+          width: activeEl.offsetWidth,
+          ready: true,
+          animating: prev.ready,
+        }));
+      }
+    };
+
+    updateIndicator();
+    const rAf = requestAnimationFrame(updateIndicator);
+    window.addEventListener('resize', updateIndicator);
+    return () => {
+      cancelAnimationFrame(rAf);
+      window.removeEventListener('resize', updateIndicator);
+    };
+  }, [activeInputMode]);
 
   const handleDrag = (e) => {
     e.preventDefault();
@@ -52,12 +81,12 @@ export default function CekNaskahView({ showToast }) {
     const isValid = validExtensions.some(ext => fileName.endsWith(ext));
 
     if (!isValid) {
-      showToast('Format Tidak Didukung', 'Harap masukkan berkas dengan ekstensi .pdf atau .docx', 'error');
+      showToast('Unsupported Format', 'Please upload a file with .pdf, .docx, or .txt extension.', 'error');
       return;
     }
 
     if (file.size > 25 * 1024 * 1024) {
-      showToast('Ukuran Terlalu Besar', 'Batas ukuran berkas maksimal 25 MB.', 'warning');
+      showToast('File Too Large', 'Maximum file size limit is 25 MB.', 'warning');
       return;
     }
 
@@ -72,9 +101,9 @@ export default function CekNaskahView({ showToast }) {
     try {
       let rawText = '';
 
-      // Step 1: Ekstraksi Teks di Browser
+      // Step 1: Text extraction in browser
       setProgressStep(1);
-      setProgressMessage('Mengekstrak teks dokumen di browser (privat)...');
+      setProgressMessage('Extracting document text in browser (private)...');
       await new Promise(r => setTimeout(r, 400));
 
       if (typeof fileOrText === 'string') {
@@ -84,27 +113,27 @@ export default function CekNaskahView({ showToast }) {
       }
 
       if (!rawText || rawText.trim().length < 30) {
-        throw new Error('Teks dokumen terlalu pendek atau kosong. Pastikan dokumen berisi teks bacaan.');
+        throw new Error('Document text is too short or empty. Please ensure the file contains readable text.');
       }
 
       // Step 2: Hashing & SimHash
       setProgressStep(2);
-      setProgressMessage('Menghitung sidik jari kriptografis (SHA-256 & SimHash 64-bit)...');
+      setProgressMessage('Computing cryptographic fingerprints (SHA-256 & SimHash 64-bit)...');
       await new Promise(r => setTimeout(r, 500));
       const fingerprint = await generateDocumentFingerprint(rawText);
 
       // Step 3: Query Smart Contract Registry
       setProgressStep(3);
-      setProgressMessage('Mencocokkan sidik jari dengan registry on-chain...');
+      setProgressMessage('Matching fingerprint against on-chain registry...');
       await new Promise(r => setTimeout(r, 600));
       const result = await checkManuscriptRegistry(rawText);
 
       setInspectionResult(result);
-      showToast('Pemeriksaan Selesai', 'Sidik jari naskah berhasil diproses.', 'success');
+      showToast('Verification Complete', 'Manuscript fingerprint successfully processed.', 'success');
 
     } catch (err) {
       console.error('Processing error:', err);
-      showToast('Gagal Memproses', err.message || 'Terjadi kesalahan saat memproses naskah.', 'error');
+      showToast('Processing Failed', err.message || 'An error occurred while processing the manuscript.', 'error');
     } finally {
       setIsProcessing(false);
       setProgressStep(0);
@@ -114,7 +143,7 @@ export default function CekNaskahView({ showToast }) {
 
   const handleManualCheck = () => {
     if (!abstractText || abstractText.trim().length < 50) {
-      showToast('Teks Kurang', 'Masukkan minimal 50 karakter abstrak untuk dianalisis.', 'warning');
+      showToast('Insufficient Text', 'Enter at least 50 characters of abstract to analyze.', 'warning');
       return;
     }
     processDocument(abstractText);
@@ -135,7 +164,7 @@ export default function CekNaskahView({ showToast }) {
   };
 
   const handleDownloadPdf = () => {
-    showToast('Laporan Siap', 'Laporan verifikasi integritas naskah sedang diunduh.', 'info');
+    showToast('Report Ready', 'Manuscript integrity verification report is downloading.', 'info');
   };
 
   const handleViewExplorer = () => {
@@ -148,75 +177,92 @@ export default function CekNaskahView({ showToast }) {
       
       {/* Hero Section */}
       <section className="text-center space-y-3 pt-4 sm:pt-6">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-xs font-mono text-slate-700">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 dark:bg-[#262626] border border-slate-200 dark:border-[#383838] text-xs font-mono text-slate-700 dark:text-slate-300">
           <Shield className="w-3.5 h-3.5 text-brand-primary" />
-          <span>Verifikasi Orisinalitas Naskah Tanpa Server</span>
+          <span>Serverless Client-Side Originality Verification</span>
         </div>
-        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-slate-900 leading-tight">
-          Cek Riwayat Naskah LKTI
+        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-slate-900 dark:text-white leading-tight">
+          Verify Academic Paper Integrity
         </h1>
-        <p className="text-slate-600 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed">
-          Pemeriksaan independen untuk memastikan naskah karya tulis ilmiah belum pernah diajukan atau menjuarai kompetisi lain di tingkat nasional.
+        <p className="text-slate-600 dark:text-slate-400 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed">
+          Independent verification protocol ensuring scientific manuscripts have not been previously submitted or awarded in other competitions.
         </p>
 
         {/* Quick Test Presets */}
         <div className="pt-2 flex flex-wrap items-center justify-center gap-2 text-xs">
-          <span className="text-slate-400 font-mono text-[11px]">Uji Cepat Contoh:</span>
+          <span className="text-slate-400 dark:text-slate-500 font-mono text-[11px]">Quick Presets:</span>
           <button 
             onClick={() => loadPreset('SAMPLE_CLEAN')}
-            className="px-3 py-1 rounded-full bg-white hover:bg-slate-50 border border-slate-200 text-emerald-800 text-xs font-medium shadow-sm transition-all"
+            className="px-3 py-1 rounded-full bg-white hover:bg-slate-50 dark:bg-[#262626] dark:hover:bg-[#2e2e2e] border border-slate-200 dark:border-[#383838] text-emerald-800 dark:text-emerald-400 text-xs font-medium shadow-sm transition-all"
           >
-            Contoh Naskah Bersih
+            Clean Paper Sample
           </button>
           <button 
             onClick={() => loadPreset('SAMPLE_A')}
-            className="px-3 py-1 rounded-full bg-white hover:bg-slate-50 border border-slate-200 text-amber-800 text-xs font-medium shadow-sm transition-all"
+            className="px-3 py-1 rounded-full bg-white hover:bg-slate-50 dark:bg-[#262626] dark:hover:bg-[#2e2e2e] border border-slate-200 dark:border-[#383838] text-amber-800 dark:text-amber-400 text-xs font-medium shadow-sm transition-all"
           >
-            Contoh Pernah Ikut (PIMNAS)
+            Prior Winner Sample
           </button>
           <button 
             onClick={() => loadPreset('SAMPLE_A_PARAPHRASED')}
-            className="px-3 py-1 rounded-full bg-white hover:bg-slate-50 border border-slate-200 text-rose-800 text-xs font-medium shadow-sm transition-all"
+            className="px-3 py-1 rounded-full bg-white hover:bg-slate-50 dark:bg-[#262626] dark:hover:bg-[#2e2e2e] border border-slate-200 dark:border-[#383838] text-rose-800 dark:text-rose-400 text-xs font-medium shadow-sm transition-all"
           >
-            Contoh Mirip Naskah Lain
+            Paraphrased / Near-Duplicate Sample
           </button>
         </div>
       </section>
 
       {/* Main Inspection Card */}
-      <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-card space-y-6">
+      <div className="bg-white dark:bg-[#262626] border border-slate-200 dark:border-[#383838] rounded-3xl p-6 sm:p-8 shadow-card space-y-6 transition-colors duration-200">
         
-        {/* Mode Switcher Tabs */}
-        <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-          <div className="flex items-center gap-2 bg-slate-100 p-1 rounded-xl">
+        {/* Mode Switcher Tabs with Sliding Orange Gradient Capsule */}
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800/80 pb-4">
+          <div className="relative flex items-center p-1 rounded-full bg-slate-100/90 dark:bg-[#1E1E1E] border border-slate-200/80 dark:border-[#383838] shadow-inner">
+            {/* Sliding Orange Gradient Capsule Pill */}
+            <span
+              className={`absolute top-1 bottom-1 rounded-full bg-gradient-to-r from-[#ED7B46] to-[#EA580C] shadow-sm shadow-orange-500/25 pointer-events-none ${
+                indicatorStyle.animating ? 'transition-all duration-300 ease-[cubic-bezier(0.25,1,0.5,1)]' : ''
+              }`}
+              style={{
+                left: `${indicatorStyle.left}px`,
+                width: `${indicatorStyle.width}px`,
+                opacity: indicatorStyle.ready ? 1 : 0,
+              }}
+            />
+
             <button
+              ref={(el) => (tabRefs.current['upload'] = el)}
               onClick={() => setActiveInputMode('upload')}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+              className={`relative z-10 flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold transition-colors duration-200 select-none ${
                 activeInputMode === 'upload' 
-                  ? 'bg-white text-slate-900 shadow-sm' 
-                  : 'text-slate-600 hover:text-slate-900'
+                  ? 'text-white' 
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
-              Unggah Dokumen (PDF / DOCX)
+              <UploadCloud className="w-3.5 h-3.5" />
+              <span>Upload Document (PDF / DOCX)</span>
             </button>
+
             <button
+              ref={(el) => (tabRefs.current['text'] = el)}
               onClick={() => setActiveInputMode('text')}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+              className={`relative z-10 flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold transition-colors duration-200 select-none ${
                 activeInputMode === 'text' 
-                  ? 'bg-white text-slate-900 shadow-sm' 
-                  : 'text-slate-600 hover:text-slate-900'
+                  ? 'text-white' 
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
-              Tempel Abstrak
+              <FileText className="w-3.5 h-3.5" />
+              <span>Paste Abstract</span>
             </button>
           </div>
 
           {(selectedFile || abstractText || inspectionResult) && (
             <button
               onClick={handleReset}
-              className="text-xs text-slate-400 hover:text-slate-600 flex items-center gap-1 font-mono transition-colors"
+              className="px-3.5 py-1.5 rounded-full text-xs text-slate-500 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 border border-slate-200 dark:border-[#383838] flex items-center gap-1.5 font-mono transition-all shadow-sm"
             >
-              <RefreshCw className="w-3 h-3" />
+              <RefreshCw className="w-3.5 h-3.5" />
               <span>Reset</span>
             </button>
           )}
@@ -233,10 +279,10 @@ export default function CekNaskahView({ showToast }) {
               onClick={() => fileInputRef.current?.click()}
               className={`relative border-2 border-dashed rounded-2xl p-8 sm:p-12 text-center cursor-pointer transition-all ${
                 dragActive 
-                  ? 'border-brand-primary bg-brand-50/50 scale-[0.99]' 
+                  ? 'border-brand-primary bg-brand-50/50 dark:bg-brand-950/20 scale-[0.99]' 
                   : selectedFile 
-                  ? 'border-slate-300 bg-slate-50/50' 
-                  : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50/30'
+                  ? 'border-slate-300 dark:border-[#383838] bg-slate-50/50 dark:bg-[#1E1E1E]/60' 
+                  : 'border-slate-200 dark:border-[#383838] hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-50/30 dark:hover:bg-[#1E1E1E]/40'
               }`}
             >
               <input
@@ -248,25 +294,23 @@ export default function CekNaskahView({ showToast }) {
               />
 
               <div className="flex flex-col items-center justify-center space-y-3">
-                <div className="w-14 h-14 rounded-2xl bg-brand-50 text-brand-primary flex items-center justify-center shadow-inner">
-                  <UploadCloud className="w-7 h-7" />
-                </div>
+                <UploadCloud className="w-10 h-10 text-brand-primary" />
                 <div>
-                  <p className="text-sm font-semibold text-slate-800">
-                    {selectedFile ? selectedFile.name : 'Tarik & letakkan naskah di sini, atau klik untuk memilih berkas'}
+                  <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">
+                    {selectedFile ? selectedFile.name : 'Drag & drop manuscript here, or click to browse'}
                   </p>
-                  <p className="text-xs text-slate-400 mt-1 font-mono">
-                    Mendukung format PDF atau Word (.docx) hingga 25 MB
+                  <p className="text-xs text-slate-400 dark:text-slate-500 mt-1 font-mono">
+                    Supports PDF or Word (.docx, .txt) up to 25 MB
                   </p>
                 </div>
               </div>
             </div>
 
             {/* Privacy Guarantee Note */}
-            <div className="flex items-center gap-2 text-xs text-slate-500 bg-slate-50 px-3.5 py-2.5 rounded-xl border border-slate-100">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+            <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-[#1E1E1E] px-3.5 py-2.5 rounded-xl border border-slate-100 dark:border-[#383838]">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
               <span>
-                <strong>Jaminan Privasi:</strong> Naskahmu diproses langsung di browser secara lokal dan tidak pernah dikirim ke server manapun.
+                <strong>Client-Side Privacy Guarantee:</strong> Your document is parsed and hashed locally in memory. The actual text is never uploaded to any server.
               </span>
             </div>
           </div>
@@ -276,28 +320,28 @@ export default function CekNaskahView({ showToast }) {
         {activeInputMode === 'text' && (
           <div className="space-y-3">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase font-mono mb-1.5">
-                Teks Abstrak Naskah
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase font-mono mb-1.5">
+                Manuscript Abstract Text
               </label>
               <textarea
                 rows={7}
                 value={abstractText}
                 onChange={(e) => setAbstractText(e.target.value)}
-                placeholder="Tempelkan paragraf abstrak naskah LKTI di sini untuk memeriksa sidik jari teks..."
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3.5 text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary transition-all font-sans leading-relaxed"
+                placeholder="Paste the abstract paragraph of your scientific paper here to analyze text fingerprint..."
+                className="w-full bg-slate-50 dark:bg-[#1E1E1E] border border-slate-200 dark:border-[#383838] rounded-xl p-3.5 text-xs sm:text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary transition-all font-sans leading-relaxed"
               />
             </div>
             
             <div className="flex items-center justify-between">
-              <span className="text-[11px] text-slate-400 font-mono">
-                {abstractText.length} karakter • {abstractText.trim() ? abstractText.trim().split(/\s+/).length : 0} kata
+              <span className="text-[11px] text-slate-400 dark:text-slate-500 font-mono">
+                {abstractText.length} characters • {abstractText.trim() ? abstractText.trim().split(/\s+/).length : 0} words
               </span>
               <button
                 onClick={handleManualCheck}
                 disabled={isProcessing || !abstractText.trim()}
                 className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-brand-primary hover:bg-brand-600 text-white text-xs font-semibold shadow-sm transition-all disabled:opacity-50"
               >
-                <span>Periksa Abstrak</span>
+                <span>Analyze Abstract</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>
@@ -306,12 +350,12 @@ export default function CekNaskahView({ showToast }) {
 
         {/* Progress Bar & Indicators during Processing */}
         {isProcessing && (
-          <div className="p-5 bg-slate-50 rounded-2xl border border-slate-200 space-y-3 animate-in fade-in">
+          <div className="p-5 bg-slate-50 dark:bg-[#1E1E1E] rounded-2xl border border-slate-200 dark:border-[#383838] space-y-3 animate-in fade-in">
             <div className="flex items-center justify-between text-xs font-mono">
-              <span className="text-slate-700 font-semibold">{progressMessage}</span>
-              <span className="text-brand-primary font-bold">Langkah {progressStep}/3</span>
+              <span className="text-slate-700 dark:text-slate-300 font-semibold">{progressMessage}</span>
+              <span className="text-brand-primary font-bold">Step {progressStep}/3</span>
             </div>
-            <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+            <div className="w-full bg-slate-200 dark:bg-slate-800 rounded-full h-2 overflow-hidden">
               <div 
                 className="bg-brand-primary h-full rounded-full transition-all duration-300"
                 style={{ width: `${(progressStep / 3) * 100}%` }}

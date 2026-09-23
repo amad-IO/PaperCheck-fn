@@ -3,12 +3,12 @@ import { calculateSha256 } from './hasher';
 
 // Initial sample seed abstracts
 export const SAMPLE_ABSTRACTS = {
-  SAMPLE_A: `Pemanfaatan limbah kulit kakao sebagai biosorben logam berat timbal dan tembaga pada perairan sungai tercemar. Penelitian ini mengkaji efektivitas adsorpsi menggunakan aktivasi asam sitrat dengan metode spektrofotometri serapan atom. Hasil menunjukkan kapasitas adsorpsi optimum sebesar 89.4 persen pada waktu kontak 60 menit dan pH 5. Karakterisasi FTIR membuktikan adanya gugus karboksil dan hidroksil yang berperan aktif dalam pengikatan kation logam berat secara efisien dan ramah lingkungan.`,
+  SAMPLE_A: `Utilization of cocoa pod husk waste as a biosorbent for heavy metal lead and copper in contaminated river waters. This study investigates adsorption efficacy using citric acid activation evaluated by atomic absorption spectrophotometry. Results demonstrate an optimum adsorption capacity of 89.4 percent at 60 minutes contact time and pH 5. FTIR characterization verifies the active role of carboxyl and hydroxyl functional groups in capturing heavy metal cations sustainably and efficiently.`,
   
   // Slightly paraphrased version of SAMPLE_A to test near-duplicate detection
-  SAMPLE_A_PARAPHRASED: `Optimalisasi biosorben dari limbah kulit buah kakao untuk remediasi pencemaran ion logam berat timbal dan tembaga pada air limbah. Kajian ini menganalisis efisiensi penyerapan dengan modifikasi aktivator asam sitrat melalui spektrofotometri serapan atom. Data memperlihatkan tingkat adsorpsi terbaik mencapai 87.8 persen pada durasi kontak 60 menit dengan kondisi pH 5. Analisis spektroskopi FTIR mengonfirmasi kehadiran gugus fungsi karboksil dan hidroksil dalam mengadsorpsi ion logam secara berkelanjutan.`,
+  SAMPLE_A_PARAPHRASED: `Optimization of cocoa pod shell biosorbent for remediating heavy metal lead and copper pollution in wastewater streams. This study analyzes sorption efficiency through citric acid activation using atomic absorption spectrophotometry. Experimental data reveals a peak adsorption rate of 87.8 percent over 60 minutes of contact under pH 5 conditions. FTIR spectroscopic analysis corroborates the functional participation of carboxyl and hydroxyl groups in eco-friendly metal ion binding.`,
 
-  SAMPLE_CLEAN: `Rancang bangun sistem monitoring kualitas udara berbasis Internet of Things menggunakan protokol komunikasi LoRaWAN pada kawasan industri manufaktur. Integrasi sensor partikulat PM2.5 dan gas karbon monoksida dianalisis secara real-time melalui mikrokontroler hemat daya. Pengujian transmisi data menunjukkan packet loss di bawah 1.2 persen pada jarak 3.5 kilometer dalam lingkungan urban padat.`
+  SAMPLE_CLEAN: `Design and implementation of an Internet of Things air quality monitoring network using the LoRaWAN communication protocol across industrial manufacturing zones. Real-time integration of particulate matter PM2.5 and carbon monoxide sensors is processed via low-power microcontrollers. Transmission stress tests demonstrated packet loss below 1.2 percent across a 3.5-kilometer range in dense urban environments.`
 };
 
 // Initial in-memory mock registry
@@ -16,34 +16,34 @@ export const INITIAL_REGISTRY = [
   {
     contentHash: '0x8f2c510a7b4e91d3e82a93c7d6e5f4a1b0c9d8e7f6a5b4c3d2e1f0a9b8c7d6e5',
     simHash: calculateSimHash(SAMPLE_ABSTRACTS.SAMPLE_A),
-    title: 'Pemanfaatan Limbah Kulit Kakao sebagai Biosorben Logam Berat Timbal dan Tembaga',
-    category: 'Energi & Lingkungan',
-    author: 'Tim Riset Kimia Terapan',
-    institution: 'Universitas Negeri Makassar',
-    registeredAt: 1714521600000, // Mei 2024
+    title: 'Utilization of Cocoa Pod Husk Waste as a Biosorbent for Heavy Metal Lead and Copper',
+    category: 'Energy & Environment',
+    author: 'Applied Chemistry Research Group',
+    institution: 'National University of Science & Technology',
+    registeredAt: 1714521600000,
     registrant: '0x71C8364437a90961f84582042a552746b34571Cd',
     participations: [
       {
         id: 1,
-        competitionName: 'Pekan Ilmiah Mahasiswa Nasional (PIMNAS 37)',
+        competitionName: 'National Collegiate Scientific Olympiad 2024',
         year: 2024,
-        category: 'PKM-RE',
-        status: 'Finalis', // Peserta / Finalis / Juara
+        category: 'Applied Chemistry & Ecology',
+        status: 'Finalist', // Participant / Finalist / Winner
         recordedBy: '0x356A192B7913B04C54574D18C28D46E6395428AB',
-        recorderName: 'Puspresnas / Balma Dikti',
-        domain: 'puspresnas.kemdikbud.go.id',
+        recorderName: 'Higher Education Research Council',
+        domain: 'research.gov.edu',
         badge: 'domain_verified', // domain_verified | attested | anonymous | disputed
         recordedAt: 1729468800000,
         isDisputed: false,
       },
       {
         id: 2,
-        competitionName: 'LKTI Nasional Green Technology UGM',
+        competitionName: 'Green Technology National Paper Contest 2025',
         year: 2025,
-        category: 'Inovasi Material Hijau',
-        status: 'Juara',
+        category: 'Green Material Innovation',
+        status: 'Winner',
         recordedBy: '0x9965507D1a55bcC2695C58ba16FB37d819B0A4df',
-        recorderName: 'BEM KM UGM',
+        recorderName: 'Engineering Student Council',
         domain: 'ugm.ac.id',
         badge: 'domain_verified',
         recordedAt: 1740096000000,
@@ -53,11 +53,11 @@ export const INITIAL_REGISTRY = [
   },
   {
     contentHash: '0x4a91c82e0f3b7d6a5c4e1f8a9b0c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c',
-    simHash: calculateSimHash('Penerapan teknologi drone otonom untuk pemetaan deforestasi hutan gambut berbasis machine learning computer vision'),
-    title: 'Penerapan Drone Otonom untuk Pemetaan Deforestasi Hutan Gambut',
-    category: 'Teknologi Informasi',
-    author: 'Informatika Cendekia',
-    institution: 'Institut Teknologi Bandung',
+    simHash: calculateSimHash('Autonomous drone deployment for peatland deforestation mapping powered by machine learning computer vision'),
+    title: 'Autonomous Drone Deployment for Peatland Deforestation Mapping',
+    category: 'Information Technology',
+    author: 'Intelligent Systems Research Team',
+    institution: 'Institute of Technology',
     registeredAt: 1719792000000,
     registrant: '0x8b3C210A8f29C71D82405628172957102948bB19',
     participations: [
@@ -66,14 +66,14 @@ export const INITIAL_REGISTRY = [
         competitionName: 'National Youth Science Forum 2024',
         year: 2024,
         category: 'Artificial Intelligence',
-        status: 'Peserta',
+        status: 'Participant',
         recordedBy: '0x14723A09ACff6D2A60DcdF7aA4AFf308FDDC160C',
-        recorderName: 'Forum Sains Mandiri',
-        domain: 'forumsains.org',
+        recorderName: 'Independent Science Foundation',
+        domain: 'scienceforum.org',
         badge: 'anonymous',
         recordedAt: 1724198400000,
         isDisputed: true,
-        disputeNote: 'Naskah hanya didaftarkan draft, tim kami tidak pernah mengirimkan berkas final ke forum ini.'
+        disputeNote: 'Manuscript was only an unsubmitted draft; our team never submitted a final version to this forum.'
       }
     ]
   }
@@ -82,7 +82,7 @@ export const INITIAL_REGISTRY = [
 /**
  * Registry Store Manager with localStorage persistence
  */
-const STORAGE_KEY = 'lkti_manuscript_registry_v1';
+const STORAGE_KEY = 'papercheck_manuscript_registry_v1';
 
 export function getRegistry() {
   if (typeof window === 'undefined') return INITIAL_REGISTRY;
@@ -175,10 +175,10 @@ export function registerManuscriptLocal({ title, category, author, institution, 
   const newRecord = {
     contentHash: sha256,
     simHash: simHash,
-    title: title || 'Naskah Tanpa Judul',
-    category: category || 'Umum',
-    author: author || 'Anonim',
-    institution: institution || 'Umum',
+    title: title || 'Untitled Manuscript',
+    category: category || 'General',
+    author: author || 'Anonymous',
+    institution: institution || 'General',
     registeredAt: Date.now(),
     registrant: registrantWallet || '0x0000000000000000000000000000000000000000',
     participations: []
@@ -200,10 +200,10 @@ export function addParticipationLocal({ contentHash, competitionName, year, cate
     id: Date.now(),
     competitionName,
     year: Number(year) || new Date().getFullYear(),
-    category: category || 'Umum',
-    status, // Peserta / Finalis / Juara
+    category: category || 'General',
+    status, // Participant / Finalist / Winner
     recordedBy,
-    recorderName: recorderName || 'Panitia Pelaksana',
+    recorderName: recorderName || 'Organizing Committee',
     domain: domain || 'unverified.local',
     badge,
     recordedAt: Date.now(),

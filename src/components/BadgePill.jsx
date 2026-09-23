@@ -4,46 +4,46 @@ import React from 'react';
 import { CheckCircle2, Award, AlertCircle, ShieldAlert } from 'lucide-react';
 
 /**
- * Badge Sumber Pencatat Kredibilitas
+ * Recorder Credibility Badge Pill
  * Types:
- * - domain_verified: Wallet cocok dengan domain institusi (unm.ac.id)
- * - attested: Ada attestation dari institusi terpercaya
- * - anonymous: Wallet biasa, tampilkan peringatan "klaim belum diverifikasi"
- * - disputed: Pendaftar asli membantah klaim ini
+ * - domain_verified: Wallet matches institution domain (e.g. unm.ac.id)
+ * - attested: Holds recognized institution attestation
+ * - anonymous: Standard wallet, displays "claim unverified" notice
+ * - disputed: The original author disputed this claim
  */
 export default function BadgePill({ badge, domain }) {
   switch (badge) {
     case 'domain_verified':
       return (
         <span 
-          title={`Pencatat terverifikasi via domain institusi: ${domain || 'resmi'}`}
-          className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-medium bg-emerald-50 text-emerald-800 border border-emerald-200"
+          title={`Recorder verified via official domain: ${domain || 'official'}`}
+          className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-medium bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60"
         >
-          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-          <span>Terverifikasi Domain</span>
-          {domain && <span className="text-emerald-600/70 font-sans">({domain})</span>}
+          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+          <span>Domain Verified</span>
+          {domain && <span className="text-emerald-600/70 dark:text-emerald-400/70 font-sans">({domain})</span>}
         </span>
       );
 
     case 'attested':
       return (
         <span 
-          title="Telah menerima pengesahan attestation dari institusi tepercaya"
-          className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-medium bg-amber-50 text-amber-800 border border-amber-200"
+          title="Verified via trusted institutional attestation"
+          className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-medium bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60"
         >
-          <Award className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-          <span>Terattestasi</span>
+          <Award className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
+          <span>Attested</span>
         </span>
       );
 
     case 'disputed':
       return (
         <span 
-          title="Klaim partisipasi ini telah dibantah resmi oleh pemilik pendaftaran pertama"
-          className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-medium bg-rose-50 text-rose-800 border border-rose-200"
+          title="This participation claim has been officially disputed by the original registrant"
+          className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-medium bg-rose-50 dark:bg-rose-950/40 text-rose-800 dark:text-rose-300 border border-rose-200 dark:border-rose-800/60"
         >
-          <ShieldAlert className="w-3.5 h-3.5 text-rose-600 shrink-0" />
-          <span>Dibantah Pendaftar</span>
+          <ShieldAlert className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400 shrink-0" />
+          <span>Claim Disputed</span>
         </span>
       );
 
@@ -51,11 +51,11 @@ export default function BadgePill({ badge, domain }) {
     default:
       return (
         <span 
-          title="Pencatat menggunakan wallet biasa. Klaim belum diverifikasi otoritas kampus."
-          className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-medium bg-slate-100 text-slate-700 border border-slate-200"
+          title="Recorded using a standard wallet. Claim not yet verified by an academic authority."
+          className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-medium bg-slate-100 dark:bg-[#262626] text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-[#383838]"
         >
-          <AlertCircle className="w-3.5 h-3.5 text-slate-500 shrink-0" />
-          <span>Anonim (Belum Terverifikasi)</span>
+          <AlertCircle className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 shrink-0" />
+          <span>Anonymous (Unverified)</span>
         </span>
       );
   }
