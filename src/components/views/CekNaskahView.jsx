@@ -4,7 +4,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { UploadCloud, FileText, CheckCircle2, Search, ArrowRight, Shield, AlertCircle, RefreshCw } from 'lucide-react';
 import { extractTextFromFile } from '../../lib/parser';
 import { generateDocumentFingerprint } from '../../lib/hasher';
-import { checkManuscriptRegistry, SAMPLE_ABSTRACTS } from '../../lib/mockRegistry';
+import { checkManuscriptRegistry, SAMPLE_ABSTRACTS, mergeWithOnChainData } from '../../lib/mockRegistry';
+import { fetchManuscriptsFromChain, CONTRACT_ADDRESS } from '../../lib/contract';
 import StatusCard from '../StatusCard';
 
 export default function CekNaskahView({ showToast }) {
@@ -49,6 +50,19 @@ export default function CekNaskahView({ showToast }) {
       window.removeEventListener('resize', updateIndicator);
     };
   }, [activeInputMode]);
+
+  useEffect(() => {
+    // Silent background sync with smart contract so similarity checks include latest on-chain manuscripts
+    fetchManuscriptsFromChain({ contractAddress: CONTRACT_ADDRESS })
+      .then((chainList) => {
+        if (chainList && chainList.length > 0) {
+          mergeWithOnChainData(chainList);
+        }
+      })
+      .catch((err) => {
+        console.warn('Silent on-chain sync in CekNaskah:', err?.message);
+      });
+  }, []);
 
   const handleDrag = (e) => {
     e.preventDefault();

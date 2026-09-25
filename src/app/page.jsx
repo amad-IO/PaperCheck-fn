@@ -27,7 +27,7 @@ export default function Home() {
   const [walletState, setWalletState] = useState({
     isConnected: false,
     address: '',
-    chainId: 84532 // Base Sepolia
+    chainId: 968 // Bohr Testnet
   });
 
   // 3D Carousel Rotation State (2-second auto-rotation)
@@ -71,7 +71,7 @@ export default function Home() {
           setWalletState({
             isConnected: false,
             address: '',
-            chainId: 84532
+            chainId: 968
           });
         } else {
           setWalletState(prev => ({
@@ -149,7 +149,7 @@ export default function Home() {
     setWalletState({
       isConnected: false,
       address: '',
-      chainId: 84532
+      chainId: 968
     });
     showToast('Wallet Disconnected', 'Wallet connection disconnected.', 'info');
   };
@@ -601,7 +601,7 @@ export default function Home() {
             <span>PaperCheck Protocol • Decentralized Academic Manuscript Integrity</span>
           </div>
           <div className="flex items-center gap-4 text-[11px]">
-            <span>Base Sepolia L2</span>
+            <span>{getNetworkName(walletState.chainId)}</span>
             <span>•</span>
             <span>Client-Side Privacy</span>
           </div>

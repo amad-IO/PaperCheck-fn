@@ -198,3 +198,56 @@ export function disputeClaimLocal(contentHash, participationId, disputeNote) {
   saveRegistry(registry);
   return true;
 }
+
+/**
+ * Merge on-chain manuscripts into local registry
+ */
+export function mergeWithOnChainData(onChainList) {
+  if (!Array.isArray(onChainList) || onChainList.length === 0) {
+    return getRegistry();
+  }
+
+  const currentList = getRegistry();
+  const map = new Map();
+
+  // 1. Index current local list
+  for (const item of currentList) {
+    if (item && item.contentHash) {
+      map.set(item.contentHash.toLowerCase(), item);
+    }
+  }
+
+  // 2. Merge or insert on-chain data
+  for (const onChainItem of onChainList) {
+    if (!onChainItem || !onChainItem.contentHash) continue;
+    const key = onChainItem.contentHash.toLowerCase();
+    const existing = map.get(key);
+
+    if (existing) {
+      map.set(key, {
+        ...existing,
+        title: onChainItem.title || existing.title,
+        category: onChainItem.category || existing.category,
+        author: onChainItem.author || existing.author,
+        institution: onChainItem.institution || existing.institution,
+        registrant: onChainItem.registrant || existing.registrant,
+        simHash: onChainItem.simHash || existing.simHash,
+        registeredAt: onChainItem.registeredAt || existing.registeredAt,
+        participations: (onChainItem.participations && onChainItem.participations.length > 0)
+          ? onChainItem.participations
+          : (existing.participations || []),
+        isOnChain: true
+      });
+    } else {
+      map.set(key, {
+        ...onChainItem,
+        isOnChain: true
+      });
+    }
+  }
+
+  const merged = Array.from(map.values());
+  saveRegistry(merged);
+  return merged;
+}
+

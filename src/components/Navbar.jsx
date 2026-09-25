@@ -176,7 +176,7 @@ export default function Navbar({ activeTab, setActiveTab, walletState, connectWa
             <span>Network:</span>
             <span className="font-semibold text-emerald-700 flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-              {getNetworkName(walletState.chainId)} ({walletState.chainId || 84532})
+              {getNetworkName(walletState.chainId)} ({walletState.chainId || 968})
             </span>
           </div>
 

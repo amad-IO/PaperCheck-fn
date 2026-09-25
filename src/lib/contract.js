@@ -1,38 +1,81 @@
 import CONTRACT_ABI from './contractAbi.json';
-import { encodeFunctionData } from 'viem';
+import { encodeFunctionData, createPublicClient, http, custom, defineChain } from 'viem';
+import { baseSepolia, sepolia, liskSepolia, arbitrumSepolia, polygonAmoy } from 'viem/chains';
 
 export const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || '0x35A323b4543BE05666fB953dae959d303A06325E';
 
 export { CONTRACT_ABI };
 
 /**
+ * Custom Bohr Network configurations
+ */
+export const bohrTestnet = defineChain({
+  id: 968,
+  name: 'Bohr Testnet',
+  nativeCurrency: { name: 'Bohr', symbol: 'BOHR', decimals: 18 },
+  rpcUrls: {
+    default: { http: ['https://rpc.bohr.life'] },
+  },
+  blockExplorers: {
+    default: { name: 'BohrScan', url: 'https://scan.bohr.life' },
+  },
+});
+
+export const bohrMainnet = defineChain({
+  id: 677,
+  name: 'Bohr Mainnet',
+  nativeCurrency: { name: 'Bohr', symbol: 'BOHR', decimals: 18 },
+  rpcUrls: {
+    default: { http: ['https://rpc.botchain.ai'] },
+  },
+  blockExplorers: {
+    default: { name: 'BohrScan', url: 'https://scan.botchain.ai' },
+  },
+});
+
+/**
  * Common chain configurations for block explorer and network naming
  */
 export const KNOWN_CHAINS = {
+  968: {
+    name: 'Bohr Testnet',
+    explorer: 'https://scan.bohr.life',
+    rpc: 'https://rpc.bohr.life',
+  },
+  677: {
+    name: 'Bohr Mainnet',
+    explorer: 'https://scan.botchain.ai',
+    rpc: 'https://rpc.botchain.ai',
+  },
   84532: {
     name: 'Base Sepolia',
     explorer: 'https://sepolia.basescan.org',
+    rpc: 'https://sepolia.base.org',
   },
   11155111: {
     name: 'Ethereum Sepolia',
     explorer: 'https://sepolia.etherscan.io',
+    rpc: 'https://ethereum-sepolia-rpc.publicnode.com',
   },
   4202: {
     name: 'Lisk Sepolia',
     explorer: 'https://sepolia-blockscout.lisk.com',
+    rpc: 'https://rpc.sepolia-api.lisk.com',
   },
   80002: {
     name: 'Polygon Amoy',
     explorer: 'https://amoy.polygonscan.com',
+    rpc: 'https://rpc-amoy.polygon.technology',
   },
   421614: {
     name: 'Arbitrum Sepolia',
     explorer: 'https://sepolia.arbiscan.io',
+    rpc: 'https://sepolia-rollup.arbitrum.io/rpc',
   },
 };
 
 export function getNetworkName(chainId) {
-  if (!chainId) return 'Testnet';
+  if (!chainId) return 'Bohr Testnet';
   const known = KNOWN_CHAINS[Number(chainId)];
   if (known) return known.name;
   return `Chain #${chainId}`;
@@ -44,7 +87,7 @@ export function getExplorerTxUrl(txHash, chainId) {
   if (known && known.explorer) {
     return `${known.explorer}/tx/${txHash}`;
   }
-  return `https://sepolia.basescan.org/tx/${txHash}`;
+  return `https://scan.bohr.life/tx/${txHash}`;
 }
 
 export function getExplorerAddressUrl(address, chainId) {
@@ -53,7 +96,7 @@ export function getExplorerAddressUrl(address, chainId) {
   if (known && known.explorer) {
     return `${known.explorer}/address/${address}`;
   }
-  return `https://sepolia.basescan.org/address/${address}`;
+  return `https://scan.bohr.life/address/${address}`;
 }
 
 /**
@@ -330,3 +373,213 @@ export async function disputeParticipationOnChain({
   const receipt = await waitForTransactionReceipt(txHash);
   return { txHash, receipt };
 }
+
+/**
+ * Mapping of Chain IDs to Viem Chain configurations
+ */
+export const VIEM_CHAIN_MAP = {
+  968: bohrTestnet,
+  677: bohrMainnet,
+  84532: baseSepolia,
+  11155111: sepolia,
+  4202: liskSepolia,
+  80002: polygonAmoy,
+  421614: arbitrumSepolia,
+};
+
+/**
+ * Get Viem Public Client for reading from smart contract
+ */
+export function getPublicClient(chainId = 968) {
+  const chainObj = VIEM_CHAIN_MAP[Number(chainId)] || bohrTestnet;
+  return createPublicClient({
+    chain: chainObj,
+    transport: http()
+  });
+}
+
+/**
+ * Fetch all registered manuscripts directly from the blockchain
+ */
+export async function fetchManuscriptsFromChain({
+  contractAddress = CONTRACT_ADDRESS,
+  chainId = 968
+} = {}) {
+  const address = contractAddress || CONTRACT_ADDRESS;
+  if (!address || address.length < 42 || address === '0x0000000000000000000000000000000000000000') {
+    return [];
+  }
+
+  const client = getPublicClient(chainId);
+
+  try {
+    // 1. Fetch all hashes registered in smart contract
+    const hashes = await client.readContract({
+      address,
+      abi: CONTRACT_ABI,
+      functionName: 'getAllHashes'
+    });
+
+    if (!hashes || !Array.isArray(hashes) || hashes.length === 0) {
+      return [];
+    }
+
+    // 2. Fetch details for each hash
+    const manuscripts = [];
+    for (const rawHash of hashes) {
+      try {
+        const m = await client.readContract({
+          address,
+          abi: CONTRACT_ABI,
+          functionName: 'getManuscript',
+          args: [rawHash]
+        });
+
+        if (!m || !m.exists) continue;
+
+        // Fetch participations if any
+        let participations = [];
+        try {
+          const rawParticipations = await client.readContract({
+            address,
+            abi: CONTRACT_ABI,
+            functionName: 'getParticipations',
+            args: [rawHash]
+          });
+
+          if (Array.isArray(rawParticipations)) {
+            participations = rawParticipations.map((p, idx) => ({
+              id: p.id ? Number(p.id) : (idx + 1),
+              competitionName: p.competitionName || 'Unknown Competition',
+              year: Number(p.year) || new Date().getFullYear(),
+              category: p.category || 'General',
+              status: p.status || 'Participant',
+              recordedBy: p.recordedBy || '0x0000000000000000000000000000000000000000',
+              recorderName: p.recorderName || 'Organizing Committee',
+              domain: p.domain || 'unverified.local',
+              recordedAt: p.recordedAt ? Number(p.recordedAt) * 1000 : Date.now(),
+              isDisputed: Boolean(p.isDisputed),
+              disputeNote: p.disputeNote || '',
+              badge: p.isDisputed ? 'disputed' : (p.status === 'Juara' || p.status === 'Winner' ? 'verified' : 'participant')
+            }));
+          }
+        } catch (pErr) {
+          console.warn('Could not read participations for hash:', rawHash, pErr);
+        }
+
+        // Format simHash
+        let formattedSimHash = '0x0000000000000000';
+        try {
+          if (typeof m.simHash === 'bigint') {
+            formattedSimHash = '0x' + m.simHash.toString(16).padStart(16, '0');
+          } else if (m.simHash) {
+            formattedSimHash = '0x' + BigInt(m.simHash).toString(16).padStart(16, '0');
+          }
+        } catch (simErr) {
+          console.warn('Formatting simHash:', simErr);
+        }
+
+        manuscripts.push({
+          contentHash: m.contentHash,
+          simHash: formattedSimHash,
+          title: m.title || 'Untitled Manuscript',
+          category: m.category || 'General',
+          author: m.author || 'Anonymous',
+          institution: m.institution || 'General',
+          registeredAt: m.registeredAt ? Number(m.registeredAt) * 1000 : Date.now(),
+          registrant: m.registrant || '0x0000000000000000000000000000000000000000',
+          txHash: null,
+          participations,
+          isOnChain: true
+        });
+      } catch (itemErr) {
+        console.warn('Failed to read manuscript for hash:', rawHash, itemErr);
+      }
+    }
+
+    return manuscripts;
+  } catch (err) {
+    console.error('Error fetching manuscripts from blockchain:', err);
+    throw err;
+  }
+}
+
+/**
+ * Fetch a single manuscript by hash directly from the blockchain
+ */
+export async function fetchSingleManuscriptFromChain({
+  contentHash,
+  contractAddress = CONTRACT_ADDRESS,
+  chainId = 968
+}) {
+  const address = contractAddress || CONTRACT_ADDRESS;
+  if (!address || !contentHash) return null;
+
+  const client = getPublicClient(chainId);
+  const formattedHash = formatBytes32(contentHash);
+
+  try {
+    const m = await client.readContract({
+      address,
+      abi: CONTRACT_ABI,
+      functionName: 'getManuscript',
+      args: [formattedHash]
+    });
+
+    if (!m || !m.exists) return null;
+
+    let participations = [];
+    try {
+      const rawParticipations = await client.readContract({
+        address,
+        abi: CONTRACT_ABI,
+        functionName: 'getParticipations',
+        args: [formattedHash]
+      });
+      if (Array.isArray(rawParticipations)) {
+        participations = rawParticipations.map((p, idx) => ({
+          id: p.id ? Number(p.id) : (idx + 1),
+          competitionName: p.competitionName,
+          year: Number(p.year),
+          category: p.category,
+          status: p.status,
+          recordedBy: p.recordedBy,
+          recorderName: p.recorderName,
+          domain: p.domain,
+          recordedAt: Number(p.recordedAt) * 1000,
+          isDisputed: Boolean(p.isDisputed),
+          disputeNote: p.disputeNote || '',
+          badge: p.isDisputed ? 'disputed' : 'participant'
+        }));
+      }
+    } catch (e) {
+      console.warn('Participations query failed:', e);
+    }
+
+    let formattedSimHash = '0x0000000000000000';
+    try {
+      if (typeof m.simHash === 'bigint') {
+        formattedSimHash = '0x' + m.simHash.toString(16).padStart(16, '0');
+      } else if (m.simHash) {
+        formattedSimHash = '0x' + BigInt(m.simHash).toString(16).padStart(16, '0');
+      }
+    } catch (e) {}
+
+    return {
+      contentHash: m.contentHash,
+      simHash: formattedSimHash,
+      title: m.title,
+      category: m.category,
+      author: m.author,
+      institution: m.institution,
+      registeredAt: Number(m.registeredAt) * 1000,
+      registrant: m.registrant,
+      participations,
+      isOnChain: true
+    };
+  } catch (err) {
+    console.error('Error fetching single manuscript from chain:', err);
+    return null;
+  }
+}
+
