@@ -29,32 +29,6 @@ export default function DaftarkanView({ walletState, connectWallet, showToast, s
   const [registrationReceipt, setRegistrationReceipt] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const getTransactionErrorMessage = (error) => {
-    const rawMessage = error?.message || error?.reason || error?.shortMessage || '';
-    const message = rawMessage.toLowerCase();
-
-    if (error?.code === 4001 || message.includes('user rejected') || message.includes('user denied') || message.includes('rejected')) {
-      return 'The transaction was rejected in MetaMask.';
-    }
-    if (message.includes('manuscriptalreadyexists') || message.includes('already exists')) {
-      return 'A manuscript with this fingerprint has already been registered on the blockchain.';
-    }
-    if (message.includes('emptyfield')) {
-      return 'The smart contract rejected the data because the title or author name is empty.';
-    }
-    if (message.includes('insufficient funds') || message.includes('funds')) {
-      return 'Your BOHR balance is insufficient to pay the transaction gas fee.';
-    }
-    if (message.includes('wrong network') || message.includes('chain')) {
-      return 'Your wallet is connected to the wrong network. Please use Bohr Testnet.';
-    }
-
-    return rawMessage
-      .replace(/^execution reverted:?\s*/i, '')
-      .replace(/^internal json-rpc error\.?\s*/i, '')
-      .slice(0, 180) || 'The blockchain rejected the transaction without providing a readable reason.';
-  };
-
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -123,9 +97,9 @@ export default function DaftarkanView({ walletState, connectWallet, showToast, s
     }
 
     setIsSubmitting(true);
+    showToast('Confirm in Wallet', 'Please confirm the registration transaction in your MetaMask wallet popup...', 'info');
 
     try {
-      showToast('Confirm in Wallet', 'Please confirm the registration transaction in your MetaMask wallet popup...', 'info');
       const result = await registerManuscriptOnChain({
         title: formData.title,
         category: formData.category || 'General',
@@ -162,7 +136,14 @@ export default function DaftarkanView({ walletState, connectWallet, showToast, s
       showToast('Registration Confirmed', 'Manuscript timestamp is permanently recorded on the smart contract!', 'success');
     } catch (err) {
       console.error('Registration on-chain failed:', err);
-      const errorMsg = getTransactionErrorMessage(err);
+      let errorMsg = 'Failed to register manuscript on blockchain.';
+      if (err?.code === 4001 || err?.message?.includes('User rejected') || err?.message?.includes('rejected')) {
+        errorMsg = 'Transaction was rejected in your wallet.';
+      } else if (err?.message?.includes('ManuscriptAlreadyExists') || err?.message?.includes('already exists')) {
+        errorMsg = 'This manuscript fingerprint has already been recorded on the blockchain.';
+      } else if (err?.message) {
+        errorMsg = err.message.slice(0, 100);
+      }
       showToast('Transaction Error', errorMsg, 'error');
     } finally {
       setIsSubmitting(false);
