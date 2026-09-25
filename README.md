@@ -26,7 +26,7 @@ PaperCheck is a decentralized Web3 application for checking manuscript originali
 This project is submitted for the BOT Chain Hackathon. All required judging materials are provided below:
 
 * **Live Website Link:** [papercheck.my.id](https://papercheck.my.id/)
-* **X (Twitter) Post:** `[https://x.com/i/status/2084650873247117604](https://x.com/papercheckk/status/2103494999870783776?s=20)` 
+* **X (Twitter) Post:** `https://x.com/i/status/2084650873247117604` 
 
 ---
 
