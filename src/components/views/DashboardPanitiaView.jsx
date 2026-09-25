@@ -18,10 +18,10 @@ export default function DashboardPanitiaView({ walletState, connectWallet, showT
     institutionDomain: 'symposium.university.edu'
   });
 
-  // Domain Verification State
+  // Domain Verification State (Default: Unverified / Hackathon Mode)
   const [domainStatus, setDomainStatus] = useState({
     domain: 'symposium.university.edu',
-    isVerified: true,
+    isVerified: false,
     dnsTxtRecord: `papercheck-verify=${walletState.address || '0x71C8364437a90961f84582042a552746b34571Cd'}`
   });
   const [isCheckingDomain, setIsCheckingDomain] = useState(false);
@@ -166,42 +166,53 @@ export default function DashboardPanitiaView({ walletState, connectWallet, showT
         </p>
       </section>
 
-      {/* Domain Verification Notice Banner */}
-      <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition-colors">
-        <div className="flex items-center gap-3">
-          <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
- domainStatus.isVerified 
- ? 'bg-emerald-100 text-emerald-700' 
- : 'bg-amber-100 text-amber-700'
- }`}>
-            <Globe className="w-5 h-5" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-bold text-slate-900">Committee Institutional Domain:</span>
-              <span className="font-mono text-xs text-brand-700 font-semibold">{domainStatus.domain}</span>
-              {domainStatus.isVerified ? (
-                <span className="px-2 py-0.2 rounded-full text-[10px] font-mono font-bold bg-emerald-100 text-emerald-800">
-                  Verified
-                </span>
-              ) : (
-                <span className="px-2 py-0.2 rounded-full text-[10px] font-mono font-bold bg-amber-100 text-amber-800">
-                  Unverified
-                </span>
-              )}
+      {/* Domain Verification Notice Banner (Hackathon Open Access Mode) */}
+      <div className="bg-gradient-to-r from-amber-50/90 via-orange-50/60 to-amber-50/90 border border-amber-200/90 rounded-2xl p-4 sm:p-5 flex flex-col gap-3.5 shadow-xs transition-colors">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-start gap-3.5">
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-xs ${
+              domainStatus.isVerified 
+                ? 'bg-emerald-100 text-emerald-700 border border-emerald-300' 
+                : 'bg-amber-100 text-amber-800 border border-amber-300'
+            }`}>
+              <Globe className="w-5 h-5" />
             </div>
-            <p className="text-[11px] text-slate-500 mt-0.5">
-              Recorded paper entries will receive a public <strong>Domain Verified</strong> credibility badge.
-            </p>
+            <div className="space-y-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-xs font-bold text-slate-900">Dashboard Committee Domain:</span>
+                <span className="font-mono text-xs text-brand-700 font-semibold">{domainStatus.domain}</span>
+                {domainStatus.isVerified ? (
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                    Verified (Active)
+                  </span>
+                ) : (
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-100 text-amber-900 border border-amber-300">
+                    Unverified Domain (Hackathon Mode)
+                  </span>
+                )}
+              </div>
+              <p className="text-[12px] text-slate-700 leading-relaxed max-w-2xl">
+                The committee dashboard <strong className="text-amber-950 font-semibold">domain is not yet verified</strong> as it is currently in the hackathon process. By default, <strong className="text-amber-950 font-semibold">anyone and any wallet can freely access the committee dashboard</strong> to explore competition creation and on-chain batch manuscript recording.
+              </p>
+            </div>
           </div>
+
+          <button
+            onClick={() => setPanitiaTab('verifikasi')}
+            className="px-3.5 py-2 rounded-xl bg-white hover:bg-amber-50 border border-amber-300 text-slate-800 text-xs font-semibold shrink-0 transition-colors shadow-xs active:scale-95"
+          >
+            {domainStatus.isVerified ? 'View DNS Config' : 'Simulate DNS Verify'}
+          </button>
         </div>
 
-        <button
-          onClick={() => setPanitiaTab('verifikasi')}
-          className="px-3.5 py-1.5 rounded-xl border border-slate-300 hover:bg-white text-slate-700 text-xs font-semibold shrink-0 transition-colors"
-        >
-          Configure DNS
-        </button>
+        {/* Informational Sub-badge */}
+        <div className="border-t border-amber-200/60 pt-2.5 flex flex-wrap items-center justify-between gap-2 text-[11px] text-amber-900/90 font-mono">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span>Open Access: Anyone can test batch recording & competition registration on the smart contract.</span>
+          </div>
+          <span className="font-sans text-[11px] text-amber-800/80 font-medium">Bohr Testnet Ready</span>
+        </div>
       </div>
 
       {/* Main Action Tabs */}
@@ -422,7 +433,18 @@ export default function DashboardPanitiaView({ walletState, connectWallet, showT
             <div>
               <h2 className="text-base font-bold text-slate-900">Institution Domain Verification</h2>
               <p className="text-xs text-slate-500 mt-0.5">
-                Prove that your committee wallet is affiliated with your institution domain via a DNS TXT record.
+                Prove that your committee wallet is affiliated with your official institution domain via a DNS TXT record.
+              </p>
+            </div>
+
+            {/* Hackathon Mode Notice */}
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-900 space-y-1">
+              <div className="font-semibold flex items-center gap-1.5 text-amber-950">
+                <AlertCircle className="w-3.5 h-3.5 text-amber-700 shrink-0" />
+                <span>Hackathon Status: Open Access Without Enforced Domain Verification</span>
+              </div>
+              <p className="text-[11px] leading-relaxed text-amber-900/90">
+                Because the system is currently in the hackathon evaluation stage, domain verification does not restrict dashboard access. Anyone can freely test full committee features. Click the button below to simulate an instant domain verification workflow.
               </p>
             </div>
 
@@ -449,7 +471,7 @@ export default function DashboardPanitiaView({ walletState, connectWallet, showT
               className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-brand-primary hover:bg-brand-600 text-white text-xs font-semibold shadow-sm transition-all disabled:opacity-50 active:scale-95"
             >
               <ShieldCheck className="w-4 h-4" />
-              <span>{isCheckingDomain ? 'Querying Nameservers...' : 'Verify Domain Now'}</span>
+              <span>{isCheckingDomain ? 'Querying Nameservers...' : (domainStatus.isVerified ? 'Re-verify Domain' : 'Simulate Domain Verification Now')}</span>
             </button>
           </div>
         )}
