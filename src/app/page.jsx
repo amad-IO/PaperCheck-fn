@@ -22,7 +22,7 @@ const TAB_ORDER = {
 export default function Home() {
   const [activeTab, setActiveTab] = useState('cek'); // 'cek' | 'daftarkan' | 'panitia' | 'detail'
   const [slideDirection, setSlideDirection] = useState('forward'); // 'forward' | 'backward'
-  
+
   // Wallet State
   const [walletState, setWalletState] = useState({
     isConnected: false,
@@ -103,9 +103,9 @@ export default function Home() {
               address: accounts[0],
               chainId: chainId
             });
-          }).catch(() => {});
+          }).catch(() => { });
         }
-      }).catch(() => {});
+      }).catch(() => { });
 
       return () => {
         if (window.ethereum.removeListener) {
@@ -200,7 +200,7 @@ export default function Home() {
   // All cards have exact identical dimensions: w-[270px] sm:w-[290px] h-[340px] rounded-[26px]
   const getSlotClass = (cardIndex) => {
     const slot = (cardIndex - centerIndex + 2 + 5) % 5;
-    
+
     switch (slot) {
       case 0: // Slot 0: Far Left
         return 'transform -translate-x-[55px] sm:-translate-x-[210px] md:-translate-x-[280px] translate-y-2 -rotate-[8deg] scale-[0.92] z-0 opacity-80 sm:opacity-90';
@@ -219,10 +219,10 @@ export default function Home() {
 
   return (
     <div className="flex-1 flex flex-col min-h-screen">
-      
+
       {/* Top Navigation Bar */}
-      <Navbar 
-        activeTab={activeTab} 
+      <Navbar
+        activeTab={activeTab}
         setActiveTab={(tab) => scrollToWorkspace(tab)}
         walletState={walletState}
         connectWallet={connectWallet}
@@ -231,7 +231,7 @@ export default function Home() {
 
       {/* Hero & Fanned Stacked Cards Showcase (Auto-Rotating every 2s, identical card sizes) */}
       <section className="w-full min-h-[calc(100vh-4rem)] flex flex-col justify-center items-center py-5 px-4 sm:px-6 select-none overflow-hidden">
-        
+
         {/* Title & Subtitle */}
         <div className="text-center max-w-2xl mx-auto mb-5">
           <h1 className="text-4xl sm:text-5xl lg:text-[54px] font-medium text-slate-900 tracking-tight leading-[1.08] mb-2.5">
@@ -244,25 +244,25 @@ export default function Home() {
           {/* Preset Buttons & Rotation Controls */}
           <div className="mt-4 flex flex-wrap items-center justify-center gap-2 text-xs">
             <span className="text-slate-400 font-mono text-xs">Quick Demo:</span>
-            <button 
+            <button
               onClick={() => handleShowcasePreset('SAMPLE_CLEAN')}
               className="px-3.5 py-1.5 rounded-full bg-white/90 hover:bg-white border border-slate-300 text-emerald-800 text-xs font-medium shadow-sm transition-all"
             >
               Clean Paper
             </button>
-            <button 
+            <button
               onClick={() => handleShowcasePreset('SAMPLE_A')}
               className="px-3.5 py-1.5 rounded-full bg-white/90 hover:bg-white border border-slate-300 text-[#ED7B46] text-xs font-medium shadow-sm transition-all"
             >
               Prior Award Winner
             </button>
-            <button 
+            <button
               onClick={() => handleShowcasePreset('SAMPLE_A_PARAPHRASED')}
               className="px-3.5 py-1.5 rounded-full bg-white/90 hover:bg-white border border-slate-300 text-rose-800 text-xs font-medium shadow-sm transition-all"
             >
               Paraphrased Match
             </button>
-            <button 
+            <button
               onClick={() => setIsPaused(!isPaused)}
               className="px-3.5 py-1.5 rounded-full bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700 text-xs font-mono font-medium shadow-sm transition-all flex items-center gap-1"
             >
@@ -274,14 +274,14 @@ export default function Home() {
         {/* FANNED STACKED CARDS CONTAINER
             Every card has uniform compact dimensions: w-[270px] sm:w-[290px] h-[340px] rounded-[26px]
             Cycles automatically every 2 seconds with 700ms smooth transitions */}
-        <div 
+        <div
           onMouseEnter={() => setIsPaused(true)}
           onMouseLeave={() => setIsPaused(false)}
           className="relative w-full max-w-[980px] h-[360px] flex items-center justify-center cursor-pointer"
         >
-          
-          {/* CARD 0: Fodlecte (Peach #F5A87B) */}
-          <div 
+
+          {/* CARD 0: Timeline Audit (Peach #F5A87B) */}
+          <div
             onClick={() => setCenterIndex(0)}
             className={`absolute w-[270px] sm:w-[290px] h-[340px] rounded-[26px] bg-[#F5A87B] p-5 text-white shadow-xl flex flex-col justify-between transition-all duration-700 ease-in-out ${getSlotClass(0)}`}
           >
@@ -292,11 +292,11 @@ export default function Home() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
                 </svg>
               </div>
-              <h3 className="text-xl font-bold mb-1.5">Fodlecte</h3>
+              <h3 className="text-xl font-bold mb-1.5">Timeline Audit</h3>
               <p className="text-white/85 text-xs leading-relaxed mb-3 line-clamp-2 font-normal">
-                Lome pastro allios saide oncesic omd cosfotidtila cert irot niridve const oormot.
+                Real-time decentralized audit trail tracking manuscript registrations and competition history.
               </p>
-              
+
               <div className="space-y-2">
                 <div className="bg-white/15 rounded-xl p-2.5">
                   <div className="text-[10px] text-white/75 font-mono">Total Hash</div>
@@ -314,17 +314,17 @@ export default function Home() {
             </div>
           </div>
 
-          {/* CARD 1: Heschin (Terracotta #E06336) */}
-          <div 
+          {/* CARD 1: Paraphrase Engine (Terracotta #E06336) */}
+          <div
             onClick={() => setCenterIndex(1)}
             className={`absolute w-[270px] sm:w-[290px] h-[340px] rounded-[26px] bg-[#E06336] p-5 text-white shadow-xl flex flex-col justify-between transition-all duration-700 ease-in-out ${getSlotClass(1)}`}
           >
             <div>
-              <h3 className="text-xl font-bold mb-1.5">Heschin</h3>
+              <h3 className="text-xl font-bold mb-1.5">Paraphrase Engine</h3>
               <p className="text-white/85 text-xs leading-relaxed mb-3 line-clamp-2 font-normal">
-                Lome stupur olligrmu crloldlt oniomsnin d...
+                64-bit SimHash Hamming distance algorithm to detect paraphrased content and semantic duplicates.
               </p>
-              
+
               {/* Equalizer Bar Chart */}
               <div className="flex items-end justify-between h-16 px-3 py-2 bg-black/10 rounded-xl mb-3">
                 <div className="w-2.5 bg-white/95 rounded-full h-[45%]"></div>
@@ -335,21 +335,33 @@ export default function Home() {
                 <div className="w-2.5 bg-white/95 rounded-full h-[40%]"></div>
               </div>
 
-              {/* Hoohens & Gonets Buttons */}
+              {/* Action Buttons */}
               <div className="space-y-1.5">
-                <div className="w-full py-2 px-3 rounded-full bg-white/15 text-center text-xs font-semibold">
-                  Hoohens
+                <div 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    scrollToWorkspace('cek');
+                  }}
+                  className="w-full py-2 px-3 rounded-full bg-white/15 hover:bg-white/25 text-center text-xs font-semibold cursor-pointer transition-all"
+                >
+                  Originality Check
                 </div>
-                <div className="w-full py-2 px-3 rounded-full bg-white/10 text-center text-xs font-semibold text-white/85">
-                  Gonets
+                <div 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    scrollToWorkspace('detail');
+                  }}
+                  className="w-full py-2 px-3 rounded-full bg-white/10 hover:bg-white/20 text-center text-xs font-semibold text-white/85 cursor-pointer transition-all"
+                >
+                  Similarity Score
                 </div>
               </div>
             </div>
             <div className="text-[10px] font-mono text-white/60 text-center">• • •</div>
           </div>
 
-          {/* CARD 2: Vosging (Center Frosted Glass Acrylic) */}
-          <div 
+          {/* CARD 2: Manuscript Verification (Center Frosted Glass Acrylic) */}
+          <div
             onClick={() => setCenterIndex(2)}
             className={`absolute w-[270px] sm:w-[290px] h-[340px] rounded-[26px] acrylic-card p-5 shadow-2xl flex flex-col justify-between transition-all duration-700 ease-in-out ${getSlotClass(2)}`}
           >
@@ -359,7 +371,7 @@ export default function Home() {
                 <div className="w-8 h-8 rounded-xl bg-white/85 border border-white/90 flex items-center justify-center shadow-sm">
                   <FileText className="w-4 h-4 text-slate-800" />
                 </div>
-                <button 
+                <button
                   onClick={(e) => {
                     e.stopPropagation();
                     setShowcaseInput('');
@@ -373,18 +385,18 @@ export default function Home() {
                 </button>
               </div>
 
-              {/* Title & Copy from reference */}
+              {/* Title & Description */}
               <div className="mb-2">
-                <h2 className="text-xl font-bold text-slate-900 tracking-tight leading-tight">Vosging</h2>
+                <h2 className="text-xl font-bold text-slate-900 tracking-tight leading-tight">Manuscript Verification</h2>
                 <p className="text-slate-600 text-[11px] leading-tight mt-0.5 font-normal line-clamp-1">
-                  Lame stywa otters oxisrcio oscaoooshair ceed ooisnp.
+                  Zero-knowledge local text extraction in browser memory without server leakage.
                 </p>
               </div>
 
-              {/* Inner Acrylic Box with OS & Spline Wave Graph */}
+              {/* Inner Acrylic Box with Analysis Status & Spline Wave Graph */}
               <div className="inner-acrylic rounded-2xl p-2.5 shadow-sm mb-2 relative overflow-hidden">
                 <div className="flex items-center justify-between mb-0.5">
-                  <span className="text-[10px] font-bold text-slate-900 uppercase tracking-wider font-mono">OS</span>
+                  <span className="text-[10px] font-bold text-slate-900 uppercase tracking-wider font-mono">ANALYSIS STATUS</span>
                   <div className="w-4 h-4 rounded bg-white/80 flex items-center justify-center">
                     <svg className="w-2.5 h-2.5 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
@@ -393,7 +405,7 @@ export default function Home() {
                 </div>
 
                 {/* Interactive Demo File Shortcut */}
-                <div 
+                <div
                   onClick={(e) => {
                     e.stopPropagation();
                     scrollToWorkspace('cek');
@@ -422,13 +434,12 @@ export default function Home() {
                     {showcaseHash ? `${showcaseHash.sha256.substring(0, 12)}...` : 'Awaiting document...'}
                   </span>
                   {showcaseStatus && (
-                    <span className={`px-1.5 py-0.2 rounded font-bold ${
- showcaseStatus.status === 'clean' 
- ? 'bg-emerald-100 text-emerald-800'
- : showcaseStatus.status === 'participated'
- ? 'bg-amber-100 text-amber-800'
- : 'bg-rose-100 text-rose-800'
- }`}>
+                    <span className={`px-1.5 py-0.2 rounded font-bold ${showcaseStatus.status === 'clean'
+                        ? 'bg-emerald-100 text-emerald-800'
+                        : showcaseStatus.status === 'participated'
+                          ? 'bg-amber-100 text-amber-800'
+                          : 'bg-rose-100 text-rose-800'
+                      }`}>
                       {showcaseStatus.status === 'clean' ? 'Clean' : (showcaseStatus.status === 'participated' ? 'Prior' : 'Match')}
                     </span>
                   )}
@@ -436,31 +447,31 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Bottom Pill Buttons: Adelhorn & Motrew */}
+            {/* Bottom Pill Buttons: Verify Paper & Register Paper */}
             <div className="grid grid-cols-2 gap-2 pt-0.5">
-              <button 
+              <button
                 onClick={(e) => {
                   e.stopPropagation();
                   scrollToWorkspace('cek');
                 }}
                 className="w-full py-2 px-3 rounded-full bg-white/80 hover:bg-white text-slate-800 text-[11px] font-semibold shadow-sm border border-white/90 transition-all text-center"
               >
-                Adelhorn
+                Verify Paper
               </button>
-              <button 
+              <button
                 onClick={(e) => {
                   e.stopPropagation();
                   scrollToWorkspace('daftarkan');
                 }}
                 className="w-full py-2 px-3 rounded-full bg-[#ED7B46] hover:bg-[#E06336] text-white text-[11px] font-semibold shadow-md transition-all text-center"
               >
-                Motrew
+                Register Paper
               </button>
             </div>
           </div>
 
-          {/* CARD 3: ertads (Slate Navy #3D4A60) */}
-          <div 
+          {/* CARD 3: Integrity Shield (Slate Navy #3D4A60) */}
+          <div
             onClick={() => setCenterIndex(3)}
             className={`absolute w-[270px] sm:w-[290px] h-[340px] rounded-[26px] bg-[#3D4A60] p-5 text-white shadow-xl flex flex-col justify-between transition-all duration-700 ease-in-out ${getSlotClass(3)}`}
           >
@@ -469,7 +480,7 @@ export default function Home() {
                 <span className="text-[10px] font-mono text-white/60">INTEGRITY</span>
                 <span className="text-xs text-white/60">• •</span>
               </div>
-              <h3 className="text-xl font-bold mb-1">ertads</h3>
+              <h3 className="text-xl font-bold mb-1">Integrity Shield</h3>
               <p className="text-white/70 text-xs leading-relaxed mb-3 line-clamp-2 font-normal">
                 Decentralized validation matrix for hackathon integrity assurance.
               </p>
@@ -489,14 +500,14 @@ export default function Home() {
               </div>
 
               <div className="py-2 px-3 rounded-full bg-white/10 text-center text-xs font-semibold">
-                New
+                Active Protocol
               </div>
             </div>
-            <div className="text-[10px] font-mono text-white/50 text-right">0x968...BOT</div>
+            <div className="text-[10px] font-mono text-white/50 text-right">0x968...BOHR</div>
           </div>
 
           {/* CARD 4: Registry (Ice Blue #DCE5EC) */}
-          <div 
+          <div
             onClick={() => setCenterIndex(4)}
             className={`absolute w-[270px] sm:w-[290px] h-[340px] rounded-[26px] bg-[#DCE5EC] p-5 text-[#2D3748] shadow-xl flex flex-col justify-between transition-all duration-700 ease-in-out ${getSlotClass(4)}`}
           >
@@ -510,13 +521,13 @@ export default function Home() {
               </div>
               <h3 className="text-lg font-bold mb-1 text-slate-800">Registry</h3>
               <p className="text-slate-600 text-xs leading-relaxed mb-3 line-clamp-2 font-normal">
-                Immutable cryptographic fingerprints on BOT Chain ledger.
+                Immutable cryptographic fingerprints on Bohr Network ledger.
               </p>
-              
+
               <div className="space-y-1.5">
                 <div className="p-2.5 bg-white/80 rounded-xl text-xs font-mono shadow-sm">
                   <div className="text-slate-400 text-[9px]">LAST HASH</div>
-                  <div className="font-bold truncate text-slate-800">0x6b86b...5b4b</div>
+                  <div className="font-bold truncate text-slate-800">0x7ff83...41b7</div>
                 </div>
                 <div className="p-2.5 bg-white/80 rounded-xl text-xs font-mono shadow-sm">
                   <div className="text-slate-400 text-[9px]">STATUS</div>
@@ -541,9 +552,8 @@ export default function Home() {
               key={idx}
               onClick={() => setCenterIndex(idx)}
               aria-label={`Select Card ${idx + 1}`}
-              className={`h-2 rounded-full transition-all duration-300 ${
- centerIndex === idx ? 'w-6 bg-[#ED7B46]' : 'w-2 bg-slate-300 hover:bg-slate-400'
- }`}
+              className={`h-2 rounded-full transition-all duration-300 ${centerIndex === idx ? 'w-6 bg-[#ED7B46]' : 'w-2 bg-slate-300 hover:bg-slate-400'
+                }`}
             />
           ))}
         </div>
@@ -553,10 +563,10 @@ export default function Home() {
       {/* WORKSPACE SECTION */}
       <section ref={workspaceRef} className="scroll-mt-16 w-full min-h-[calc(100vh-4rem)] bg-white border-t border-slate-200 py-12 px-4 sm:px-6 lg:px-8 shadow-inner overflow-hidden transition-colors duration-200">
         <div className="max-w-5xl mx-auto overflow-hidden">
-          
+
           {/* ACTIVE WORKSPACE VIEW WITH DIRECTIONAL ANIMATION */}
-          <div 
-            key={activeTab} 
+          <div
+            key={activeTab}
             className={`w-full ${slideDirection === 'forward' ? 'page-slide-forward' : 'page-slide-backward'}`}
           >
             {activeTab === 'cek' && (
@@ -564,8 +574,8 @@ export default function Home() {
             )}
 
             {activeTab === 'daftarkan' && (
-              <DaftarkanView 
-                walletState={walletState} 
+              <DaftarkanView
+                walletState={walletState}
                 connectWallet={connectWallet}
                 showToast={showToast}
                 setActiveTab={scrollToWorkspace}
@@ -573,8 +583,8 @@ export default function Home() {
             )}
 
             {activeTab === 'panitia' && (
-              <DashboardPanitiaView 
-                walletState={walletState} 
+              <DashboardPanitiaView
+                walletState={walletState}
                 connectWallet={connectWallet}
                 showToast={showToast}
                 setActiveTab={scrollToWorkspace}
@@ -582,8 +592,8 @@ export default function Home() {
             )}
 
             {activeTab === 'detail' && (
-              <DetailNaskahView 
-                walletState={walletState} 
+              <DetailNaskahView
+                walletState={walletState}
                 showToast={showToast}
                 setActiveTab={scrollToWorkspace}
               />
@@ -610,7 +620,7 @@ export default function Home() {
 
       {/* Floating Toast Notification (Minimalist Sonner/Linear Style) */}
       {toast && (
-        <div 
+        <div
           key={toast.id || toast.title}
           className="fixed bottom-6 right-6 z-50 flex items-start gap-3 w-auto max-w-sm sm:max-w-md bg-white/95 backdrop-blur-xl rounded-2xl px-4 py-3.5 border border-slate-200/90 shadow-[0_12px_36px_-6px_rgba(0,0,0,0.12),0_4px_12px_-2px_rgba(0,0,0,0.06)] toast-animate-in select-none"
         >
@@ -633,7 +643,7 @@ export default function Home() {
           </div>
 
           {/* Close button */}
-          <button 
+          <button
             onClick={() => setToast(null)}
             className="text-slate-400 hover:text-slate-600 transition-colors p-0.5 -mr-1 -mt-0.5 shrink-0"
             aria-label="Close notification"
