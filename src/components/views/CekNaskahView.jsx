@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { UploadCloud, FileText, CheckCircle2, Search, ArrowRight, Shield, AlertCircle, RefreshCw } from 'lucide-react';
 import { extractTextFromFile } from '../../lib/parser';
 import { generateDocumentFingerprint } from '../../lib/hasher';
-import { checkManuscriptRegistry, SAMPLE_ABSTRACTS, mergeWithOnChainData } from '../../lib/mockRegistry';
+import { checkManuscriptRegistry, mergeWithOnChainData } from '../../lib/mockRegistry';
 import { fetchManuscriptsFromChain, CONTRACT_ADDRESS, getExplorerTxUrl, getExplorerAddressUrl } from '../../lib/contract';
 import StatusCard from '../StatusCard';
 
@@ -170,13 +170,6 @@ export default function CekNaskahView({ showToast, walletState }) {
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
-  const loadPreset = (presetKey) => {
-    const text = SAMPLE_ABSTRACTS[presetKey];
-    setActiveInputMode('text');
-    setAbstractText(text);
-    processDocument(text);
-  };
-
   const handleViewExplorer = () => {
     const chainId = walletState?.chainId || 968;
     if (inspectionResult?.manuscript?.txHash) {
@@ -202,29 +195,6 @@ export default function CekNaskahView({ showToast, walletState }) {
         <p className="text-slate-600 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed">
           Independent verification protocol ensuring scientific manuscripts have not been previously submitted or awarded in other competitions.
         </p>
-
-        {/* Quick Test Presets */}
-        <div className="pt-2 flex flex-wrap items-center justify-center gap-2 text-xs">
-          <span className="text-slate-400 font-mono text-[11px]">Quick Presets:</span>
-          <button 
-            onClick={() => loadPreset('SAMPLE_CLEAN')}
-            className="px-3 py-1 rounded-full bg-white hover:bg-slate-50 border border-slate-200 text-emerald-800 text-xs font-medium shadow-sm transition-all"
-          >
-            Clean Paper Sample
-          </button>
-          <button 
-            onClick={() => loadPreset('SAMPLE_A')}
-            className="px-3 py-1 rounded-full bg-white hover:bg-slate-50 border border-slate-200 text-amber-800 text-xs font-medium shadow-sm transition-all"
-          >
-            Prior Winner Sample
-          </button>
-          <button 
-            onClick={() => loadPreset('SAMPLE_A_PARAPHRASED')}
-            className="px-3 py-1 rounded-full bg-white hover:bg-slate-50 border border-slate-200 text-rose-800 text-xs font-medium shadow-sm transition-all"
-          >
-            Paraphrased / Near-Duplicate Sample
-          </button>
-        </div>
       </section>
 
       {/* Main Inspection Card */}
@@ -335,9 +305,6 @@ export default function CekNaskahView({ showToast, walletState }) {
         {activeInputMode === 'text' && (
           <div className="space-y-3">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase font-mono mb-1.5">
-                Manuscript Abstract Text
-              </label>
               <textarea
                 rows={7}
                 value={abstractText}
