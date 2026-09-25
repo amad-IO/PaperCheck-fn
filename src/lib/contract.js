@@ -2,13 +2,16 @@ import CONTRACT_ABI from './contractAbi.json';
 import { encodeFunctionData, createPublicClient, http, custom, defineChain } from 'viem';
 import { baseSepolia, sepolia, liskSepolia, arbitrumSepolia, polygonAmoy } from 'viem/chains';
 
-const contractAddress = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS;
-
-if (!contractAddress) {
-  throw new Error('NEXT_PUBLIC_CONTRACT_ADDRESS is not set. Add it to your .env file.');
-}
+const contractAddress = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS ?? '';
 
 export const CONTRACT_ADDRESS = contractAddress;
+
+export function requireContractAddress() {
+  if (!CONTRACT_ADDRESS) {
+    throw new Error('NEXT_PUBLIC_CONTRACT_ADDRESS is not set. Add it to your .env file or deployment environment variables.');
+  }
+  return CONTRACT_ADDRESS;
+}
 
 export { CONTRACT_ABI };
 
@@ -189,6 +192,7 @@ export async function registerManuscriptOnChain({
     throw new Error('No active wallet account selected. Please connect MetaMask.');
   }
 
+  const resolvedContractAddress = requireContractAddress();
   const formattedContentHash = formatBytes32(sha256);
   const formattedSimHash = formatSimHashBigInt(simHash);
 
@@ -212,7 +216,7 @@ export async function registerManuscriptOnChain({
     params: [
       {
         from: sender,
-        to: CONTRACT_ADDRESS,
+        to: resolvedContractAddress,
         data: callData
       }
     ]
@@ -252,6 +256,7 @@ export async function addParticipationOnChain({
   const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
   const sender = userAddress || accounts[0];
 
+  const resolvedContractAddress = requireContractAddress();
   const formattedHash = formatBytes32(contentHash);
 
   const callData = encodeFunctionData({
@@ -273,7 +278,7 @@ export async function addParticipationOnChain({
     params: [
       {
         from: sender,
-        to: CONTRACT_ADDRESS,
+        to: resolvedContractAddress,
         data: callData
       }
     ]
@@ -302,6 +307,7 @@ export async function batchAddParticipationOnChain({
   const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
   const sender = userAddress || accounts[0];
 
+  const resolvedContractAddress = requireContractAddress();
   const contentHashes = items.map(it => formatBytes32(it.sha256));
   const competitionNames = items.map(() => competitionName);
   const years = items.map(() => Number(year) || new Date().getFullYear());
@@ -327,7 +333,7 @@ export async function batchAddParticipationOnChain({
     params: [
       {
         from: sender,
-        to: CONTRACT_ADDRESS,
+        to: resolvedContractAddress,
         data: callData
       }
     ]
@@ -353,6 +359,7 @@ export async function disputeParticipationOnChain({
   const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
   const sender = userAddress || accounts[0];
 
+  const resolvedContractAddress = requireContractAddress();
   const callData = encodeFunctionData({
     abi: CONTRACT_ABI,
     functionName: 'disputeParticipation',
@@ -368,7 +375,7 @@ export async function disputeParticipationOnChain({
     params: [
       {
         from: sender,
-        to: CONTRACT_ADDRESS,
+        to: resolvedContractAddress,
         data: callData
       }
     ]
@@ -409,7 +416,7 @@ export async function fetchManuscriptsFromChain({
   contractAddress = CONTRACT_ADDRESS,
   chainId = 968
 } = {}) {
-  const address = contractAddress || CONTRACT_ADDRESS;
+  const address = contractAddress || requireContractAddress();
   if (!address || address.length < 42 || address === '0x0000000000000000000000000000000000000000') {
     return [];
   }
@@ -535,7 +542,7 @@ export async function fetchSingleManuscriptFromChain({
   contractAddress = CONTRACT_ADDRESS,
   chainId = 968
 }) {
-  const address = contractAddress || CONTRACT_ADDRESS;
+  const address = contractAddress || requireContractAddress();
   if (!address || !contentHash) return null;
 
   const client = getPublicClient(chainId);
