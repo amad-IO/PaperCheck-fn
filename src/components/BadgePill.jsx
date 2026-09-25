@@ -17,11 +17,11 @@ export default function BadgePill({ badge, domain }) {
       return (
         <span 
           title={`Recorder verified via official domain: ${domain || 'official'}`}
-          className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-medium bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60"
+          className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-medium bg-emerald-50 text-emerald-800 border border-emerald-200"
         >
-          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
           <span>Domain Verified</span>
-          {domain && <span className="text-emerald-600/70 dark:text-emerald-400/70 font-sans">({domain})</span>}
+          {domain && <span className="text-emerald-600/70 font-sans">({domain})</span>}
         </span>
       );
 
@@ -29,9 +29,9 @@ export default function BadgePill({ badge, domain }) {
       return (
         <span 
           title="Verified via trusted institutional attestation"
-          className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-medium bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60"
+          className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-medium bg-amber-50 text-amber-800 border border-amber-200"
         >
-          <Award className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
+          <Award className="w-3.5 h-3.5 text-amber-600 shrink-0" />
           <span>Attested</span>
         </span>
       );
@@ -40,9 +40,9 @@ export default function BadgePill({ badge, domain }) {
       return (
         <span 
           title="This participation claim has been officially disputed by the original registrant"
-          className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-medium bg-rose-50 dark:bg-rose-950/40 text-rose-800 dark:text-rose-300 border border-rose-200 dark:border-rose-800/60"
+          className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-medium bg-rose-50 text-rose-800 border border-rose-200"
         >
-          <ShieldAlert className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400 shrink-0" />
+          <ShieldAlert className="w-3.5 h-3.5 text-rose-600 shrink-0" />
           <span>Claim Disputed</span>
         </span>
       );
@@ -52,9 +52,9 @@ export default function BadgePill({ badge, domain }) {
       return (
         <span 
           title="Recorded using a standard wallet. Claim not yet verified by an academic authority."
-          className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-medium bg-slate-100 dark:bg-[#262626] text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-[#383838]"
+          className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-medium bg-slate-100 text-slate-700 border border-slate-200"
         >
-          <AlertCircle className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 shrink-0" />
+          <AlertCircle className="w-3.5 h-3.5 text-slate-500 shrink-0" />
           <span>Anonymous (Unverified)</span>
         </span>
       );

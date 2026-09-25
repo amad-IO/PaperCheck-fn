@@ -12,89 +12,37 @@ export const SAMPLE_ABSTRACTS = {
 };
 
 // Initial in-memory mock registry
-export const INITIAL_REGISTRY = [
-  {
-    contentHash: '0x8f2c510a7b4e91d3e82a93c7d6e5f4a1b0c9d8e7f6a5b4c3d2e1f0a9b8c7d6e5',
-    simHash: calculateSimHash(SAMPLE_ABSTRACTS.SAMPLE_A),
-    title: 'Utilization of Cocoa Pod Husk Waste as a Biosorbent for Heavy Metal Lead and Copper',
-    category: 'Energy & Environment',
-    author: 'Applied Chemistry Research Group',
-    institution: 'National University of Science & Technology',
-    registeredAt: 1714521600000,
-    registrant: '0x71C8364437a90961f84582042a552746b34571Cd',
-    participations: [
-      {
-        id: 1,
-        competitionName: 'National Collegiate Scientific Olympiad 2024',
-        year: 2024,
-        category: 'Applied Chemistry & Ecology',
-        status: 'Finalist', // Participant / Finalist / Winner
-        recordedBy: '0x356A192B7913B04C54574D18C28D46E6395428AB',
-        recorderName: 'Higher Education Research Council',
-        domain: 'research.gov.edu',
-        badge: 'domain_verified', // domain_verified | attested | anonymous | disputed
-        recordedAt: 1729468800000,
-        isDisputed: false,
-      },
-      {
-        id: 2,
-        competitionName: 'Green Technology National Paper Contest 2025',
-        year: 2025,
-        category: 'Green Material Innovation',
-        status: 'Winner',
-        recordedBy: '0x9965507D1a55bcC2695C58ba16FB37d819B0A4df',
-        recorderName: 'Engineering Student Council',
-        domain: 'ugm.ac.id',
-        badge: 'domain_verified',
-        recordedAt: 1740096000000,
-        isDisputed: false,
-      }
-    ]
-  },
-  {
-    contentHash: '0x4a91c82e0f3b7d6a5c4e1f8a9b0c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c',
-    simHash: calculateSimHash('Autonomous drone deployment for peatland deforestation mapping powered by machine learning computer vision'),
-    title: 'Autonomous Drone Deployment for Peatland Deforestation Mapping',
-    category: 'Information Technology',
-    author: 'Intelligent Systems Research Team',
-    institution: 'Institute of Technology',
-    registeredAt: 1719792000000,
-    registrant: '0x8b3C210A8f29C71D82405628172957102948bB19',
-    participations: [
-      {
-        id: 3,
-        competitionName: 'National Youth Science Forum 2024',
-        year: 2024,
-        category: 'Artificial Intelligence',
-        status: 'Participant',
-        recordedBy: '0x14723A09ACff6D2A60DcdF7aA4AFf308FDDC160C',
-        recorderName: 'Independent Science Foundation',
-        domain: 'scienceforum.org',
-        badge: 'anonymous',
-        recordedAt: 1724198400000,
-        isDisputed: true,
-        disputeNote: 'Manuscript was only an unsubmitted draft; our team never submitted a final version to this forum.'
-      }
-    ]
-  }
-];
+export const INITIAL_REGISTRY = [];
 
 /**
  * Registry Store Manager with localStorage persistence
  */
 const STORAGE_KEY = 'papercheck_manuscript_registry_v1';
 
+// Legacy dummy hashes to automatically strip from localStorage
+const DUMMY_HASHES = new Set([
+  '0x8f2c510a7b4e91d3e82a93c7d6e5f4a1b0c9d8e7f6a5b4c3d2e1f0a9b8c7d6e5'.toLowerCase(),
+  '0x4a91c82e0f3b7d6a5c4e1f8a9b0c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c'.toLowerCase()
+]);
+
 export function getRegistry() {
-  if (typeof window === 'undefined') return INITIAL_REGISTRY;
+  if (typeof window === 'undefined') return [];
   try {
     const data = localStorage.getItem(STORAGE_KEY);
     if (!data) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(INITIAL_REGISTRY));
-      return INITIAL_REGISTRY;
+      return [];
     }
-    return JSON.parse(data);
+    const parsed = JSON.parse(data);
+    if (Array.isArray(parsed)) {
+      const filtered = parsed.filter(item => !DUMMY_HASHES.has((item.contentHash || '').toLowerCase()));
+      if (filtered.length !== parsed.length) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
+      }
+      return filtered;
+    }
+    return [];
   } catch {
-    return INITIAL_REGISTRY;
+    return [];
   }
 }
 
@@ -169,7 +117,7 @@ export async function checkManuscriptRegistry(text) {
 /**
  * Register new manuscript
  */
-export function registerManuscriptLocal({ title, category, author, institution, email, sha256, simHash, registrantWallet }) {
+export function registerManuscriptLocal({ title, category, author, institution, email, sha256, simHash, registrantWallet, txHash, blockNumber }) {
   const registry = getRegistry();
 
   const newRecord = {
@@ -181,6 +129,8 @@ export function registerManuscriptLocal({ title, category, author, institution, 
     institution: institution || 'General',
     registeredAt: Date.now(),
     registrant: registrantWallet || '0x0000000000000000000000000000000000000000',
+    txHash: txHash || null,
+    blockNumber: blockNumber || null,
     participations: []
   };
 

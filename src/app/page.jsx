@@ -9,6 +9,7 @@ import DetailNaskahView from '../components/views/DetailNaskahView';
 import { extractTextFromFile } from '../lib/parser';
 import { generateDocumentFingerprint } from '../lib/hasher';
 import { checkManuscriptRegistry, SAMPLE_ABSTRACTS, registerManuscriptLocal } from '../lib/mockRegistry';
+import { getNetworkName } from '../lib/contract';
 import { Shield, CheckCircle, AlertCircle, Info, X, FileText, UploadCloud, Search, Award, Play, Pause } from 'lucide-react';
 
 const TAB_ORDER = {
@@ -63,31 +64,85 @@ export default function Home() {
     }, 4500);
   };
 
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.ethereum) {
+      const handleAccountsChanged = (accounts) => {
+        if (!accounts || accounts.length === 0) {
+          setWalletState({
+            isConnected: false,
+            address: '',
+            chainId: 84532
+          });
+        } else {
+          setWalletState(prev => ({
+            ...prev,
+            isConnected: true,
+            address: accounts[0]
+          }));
+        }
+      };
+
+      const handleChainChanged = (chainIdHex) => {
+        const chainId = parseInt(chainIdHex, 16);
+        setWalletState(prev => ({
+          ...prev,
+          chainId: chainId
+        }));
+        showToast('Network Switched', `Active network: ${getNetworkName(chainId)}`, 'info');
+      };
+
+      window.ethereum.on('accountsChanged', handleAccountsChanged);
+      window.ethereum.on('chainChanged', handleChainChanged);
+
+      window.ethereum.request({ method: 'eth_accounts' }).then(accounts => {
+        if (accounts && accounts.length > 0) {
+          window.ethereum.request({ method: 'eth_chainId' }).then(chainIdHex => {
+            const chainId = parseInt(chainIdHex, 16);
+            setWalletState({
+              isConnected: true,
+              address: accounts[0],
+              chainId: chainId
+            });
+          }).catch(() => {});
+        }
+      }).catch(() => {});
+
+      return () => {
+        if (window.ethereum.removeListener) {
+          window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
+          window.ethereum.removeListener('chainChanged', handleChainChanged);
+        }
+      };
+    }
+  }, []);
+
   const connectWallet = async () => {
     if (typeof window !== 'undefined' && window.ethereum) {
       try {
         const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
         if (accounts.length > 0) {
+          const chainIdHex = await window.ethereum.request({ method: 'eth_chainId' });
+          const chainId = parseInt(chainIdHex, 16);
           setWalletState({
             isConnected: true,
             address: accounts[0],
-            chainId: 84532
+            chainId: chainId
           });
-          showToast('Wallet Connected', `Connected to ${accounts[0].substring(0, 6)}...`, 'success');
+          showToast('Wallet Connected', `Connected to ${accounts[0].substring(0, 6)}... (${getNetworkName(chainId)})`, 'success');
           return;
         }
       } catch (e) {
-        console.warn('Metamask request error:', e);
+        console.warn('MetaMask request error:', e);
+        if (e.code === 4001) {
+          showToast('Connection Canceled', 'You canceled the MetaMask request.', 'warning');
+          return;
+        }
+        showToast('Connection Error', e.message || 'Failed to connect MetaMask.', 'error');
+        return;
       }
+    } else {
+      showToast('MetaMask Required', 'Please install the MetaMask browser extension to connect.', 'warning');
     }
-
-    const demoAddress = '0x71C8364437a90961f84582042a552746b34571Cd';
-    setWalletState({
-      isConnected: true,
-      address: demoAddress,
-      chainId: 84532
-    });
-    showToast('Demo Wallet Active', `Connected to ${demoAddress.substring(0, 6)}...`, 'success');
   };
 
   const disconnectWallet = () => {
@@ -96,7 +151,7 @@ export default function Home() {
       address: '',
       chainId: 84532
     });
-    showToast('Wallet Disconnected', 'Wallet connection terminated.', 'info');
+    showToast('Wallet Disconnected', 'Wallet connection disconnected.', 'info');
   };
 
   const handleTabChange = (newTab) => {
@@ -179,37 +234,37 @@ export default function Home() {
         
         {/* Title & Subtitle */}
         <div className="text-center max-w-2xl mx-auto mb-5">
-          <h1 className="text-4xl sm:text-5xl lg:text-[54px] font-medium text-slate-900 dark:text-white tracking-tight leading-[1.08] mb-2.5">
+          <h1 className="text-4xl sm:text-5xl lg:text-[54px] font-medium text-slate-900 tracking-tight leading-[1.08] mb-2.5">
             System Metriqs
           </h1>
-          <p className="text-slate-600 dark:text-slate-400 text-sm sm:text-base leading-relaxed max-w-xl mx-auto font-normal">
+          <p className="text-slate-600 text-sm sm:text-base leading-relaxed max-w-xl mx-auto font-normal">
             Real-time mapping of data streams and architectural consolidation. Designed for absolute clarity.
           </p>
 
           {/* Preset Buttons & Rotation Controls */}
           <div className="mt-4 flex flex-wrap items-center justify-center gap-2 text-xs">
-            <span className="text-slate-400 dark:text-slate-500 font-mono text-xs">Quick Demo:</span>
+            <span className="text-slate-400 font-mono text-xs">Quick Demo:</span>
             <button 
               onClick={() => handleShowcasePreset('SAMPLE_CLEAN')}
-              className="px-3.5 py-1.5 rounded-full bg-white/90 hover:bg-white dark:bg-[#262626] dark:hover:bg-[#2e2e2e] border border-slate-300 dark:border-[#383838] text-emerald-800 dark:text-emerald-400 text-xs font-medium shadow-sm transition-all"
+              className="px-3.5 py-1.5 rounded-full bg-white/90 hover:bg-white border border-slate-300 text-emerald-800 text-xs font-medium shadow-sm transition-all"
             >
               Clean Paper
             </button>
             <button 
               onClick={() => handleShowcasePreset('SAMPLE_A')}
-              className="px-3.5 py-1.5 rounded-full bg-white/90 hover:bg-white dark:bg-[#262626] dark:hover:bg-[#2e2e2e] border border-slate-300 dark:border-[#383838] text-[#ED7B46] dark:text-[#F5A87B] text-xs font-medium shadow-sm transition-all"
+              className="px-3.5 py-1.5 rounded-full bg-white/90 hover:bg-white border border-slate-300 text-[#ED7B46] text-xs font-medium shadow-sm transition-all"
             >
               Prior Award Winner
             </button>
             <button 
               onClick={() => handleShowcasePreset('SAMPLE_A_PARAPHRASED')}
-              className="px-3.5 py-1.5 rounded-full bg-white/90 hover:bg-white dark:bg-[#262626] dark:hover:bg-[#2e2e2e] border border-slate-300 dark:border-[#383838] text-rose-800 dark:text-rose-400 text-xs font-medium shadow-sm transition-all"
+              className="px-3.5 py-1.5 rounded-full bg-white/90 hover:bg-white border border-slate-300 text-rose-800 text-xs font-medium shadow-sm transition-all"
             >
               Paraphrased Match
             </button>
             <button 
               onClick={() => setIsPaused(!isPaused)}
-              className="px-3.5 py-1.5 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-[#262626] dark:hover:bg-[#2e2e2e] border border-slate-300 dark:border-[#383838] text-slate-700 dark:text-slate-300 text-xs font-mono font-medium shadow-sm transition-all flex items-center gap-1"
+              className="px-3.5 py-1.5 rounded-full bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700 text-xs font-mono font-medium shadow-sm transition-all flex items-center gap-1"
             >
               {isPaused ? 'Resume Rotation' : 'Pause (2s)'}
             </button>
@@ -368,12 +423,12 @@ export default function Home() {
                   </span>
                   {showcaseStatus && (
                     <span className={`px-1.5 py-0.2 rounded font-bold ${
-                      showcaseStatus.status === 'clean' 
-                        ? 'bg-emerald-100 text-emerald-800'
-                        : showcaseStatus.status === 'participated'
-                        ? 'bg-amber-100 text-amber-800'
-                        : 'bg-rose-100 text-rose-800'
-                    }`}>
+ showcaseStatus.status === 'clean' 
+ ? 'bg-emerald-100 text-emerald-800'
+ : showcaseStatus.status === 'participated'
+ ? 'bg-amber-100 text-amber-800'
+ : 'bg-rose-100 text-rose-800'
+ }`}>
                       {showcaseStatus.status === 'clean' ? 'Clean' : (showcaseStatus.status === 'participated' ? 'Prior' : 'Match')}
                     </span>
                   )}
@@ -487,8 +542,8 @@ export default function Home() {
               onClick={() => setCenterIndex(idx)}
               aria-label={`Select Card ${idx + 1}`}
               className={`h-2 rounded-full transition-all duration-300 ${
-                centerIndex === idx ? 'w-6 bg-[#ED7B46]' : 'w-2 bg-slate-300 hover:bg-slate-400 dark:bg-slate-700 dark:hover:bg-slate-600'
-              }`}
+ centerIndex === idx ? 'w-6 bg-[#ED7B46]' : 'w-2 bg-slate-300 hover:bg-slate-400'
+ }`}
             />
           ))}
         </div>
@@ -496,7 +551,7 @@ export default function Home() {
       </section>
 
       {/* WORKSPACE SECTION */}
-      <section ref={workspaceRef} className="scroll-mt-16 w-full min-h-[calc(100vh-4rem)] bg-white dark:bg-[#1E1E1E] border-t border-slate-200 dark:border-slate-800 py-12 px-4 sm:px-6 lg:px-8 shadow-inner overflow-hidden transition-colors duration-200">
+      <section ref={workspaceRef} className="scroll-mt-16 w-full min-h-[calc(100vh-4rem)] bg-white border-t border-slate-200 py-12 px-4 sm:px-6 lg:px-8 shadow-inner overflow-hidden transition-colors duration-200">
         <div className="max-w-5xl mx-auto overflow-hidden">
           
           {/* ACTIVE WORKSPACE VIEW WITH DIRECTIONAL ANIMATION */}
@@ -530,6 +585,7 @@ export default function Home() {
               <DetailNaskahView 
                 walletState={walletState} 
                 showToast={showToast}
+                setActiveTab={scrollToWorkspace}
               />
             )}
           </div>
@@ -538,8 +594,8 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="w-full border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-[#1E1E1E] py-6 px-4 transition-colors duration-200">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 dark:text-slate-400 font-mono gap-3">
+      <footer className="w-full border-t border-slate-200 bg-white py-6 px-4 transition-colors duration-200">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 font-mono gap-3">
           <div className="flex items-center gap-2">
             <img src="/logo.svg" alt="PaperCheck" className="w-4 h-4 object-contain" />
             <span>PaperCheck Protocol • Decentralized Academic Manuscript Integrity</span>
@@ -556,22 +612,22 @@ export default function Home() {
       {toast && (
         <div 
           key={toast.id || toast.title}
-          className="fixed bottom-6 right-6 z-50 flex items-start gap-3 w-auto max-w-sm sm:max-w-md bg-white/95 dark:bg-[#262626]/95 backdrop-blur-xl rounded-2xl px-4 py-3.5 border border-slate-200/90 dark:border-[#383838] shadow-[0_12px_36px_-6px_rgba(0,0,0,0.12),0_4px_12px_-2px_rgba(0,0,0,0.06)] dark:shadow-[0_12px_36px_-6px_rgba(0,0,0,0.6),0_4px_12px_-2px_rgba(0,0,0,0.3)] toast-animate-in select-none"
+          className="fixed bottom-6 right-6 z-50 flex items-start gap-3 w-auto max-w-sm sm:max-w-md bg-white/95 backdrop-blur-xl rounded-2xl px-4 py-3.5 border border-slate-200/90 shadow-[0_12px_36px_-6px_rgba(0,0,0,0.12),0_4px_12px_-2px_rgba(0,0,0,0.06)] toast-animate-in select-none"
         >
           {/* Status Icon */}
           <div className="shrink-0 mt-0.5">
-            {toast.type === 'success' && <CheckCircle className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />}
-            {toast.type === 'error' && <AlertCircle className="w-4 h-4 text-rose-600 dark:text-rose-400" />}
-            {toast.type === 'warning' && <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400" />}
+            {toast.type === 'success' && <CheckCircle className="w-4 h-4 text-emerald-600" />}
+            {toast.type === 'error' && <AlertCircle className="w-4 h-4 text-rose-600" />}
+            {toast.type === 'warning' && <AlertCircle className="w-4 h-4 text-amber-600" />}
             {toast.type === 'info' && <Info className="w-4 h-4 text-[#ED7B46]" />}
           </div>
 
           {/* Typography */}
           <div className="flex-1 min-w-0 pr-1">
-            <h4 className="text-xs font-semibold text-slate-900 dark:text-white tracking-tight leading-snug">
+            <h4 className="text-xs font-semibold text-slate-900 tracking-tight leading-snug">
               {toast.title}
             </h4>
-            <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed mt-0.5 font-normal">
+            <p className="text-[11px] text-slate-500 leading-relaxed mt-0.5 font-normal">
               {toast.message}
             </p>
           </div>
@@ -579,7 +635,7 @@ export default function Home() {
           {/* Close button */}
           <button 
             onClick={() => setToast(null)}
-            className="text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-200 transition-colors p-0.5 -mr-1 -mt-0.5 shrink-0"
+            className="text-slate-400 hover:text-slate-600 transition-colors p-0.5 -mr-1 -mt-0.5 shrink-0"
             aria-label="Close notification"
           >
             <X className="w-3.5 h-3.5" />

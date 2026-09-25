@@ -5,6 +5,7 @@ import { Award, Globe, CheckCircle2, AlertCircle, PlusCircle, UploadCloud, Arrow
 import { extractTextFromFile } from '../../lib/parser';
 import { generateDocumentFingerprint } from '../../lib/hasher';
 import { addParticipationLocal, checkManuscriptRegistry } from '../../lib/mockRegistry';
+import { batchAddParticipationOnChain } from '../../lib/contract';
 
 export default function DashboardPanitiaView({ walletState, connectWallet, showToast, setActiveTab }) {
   const [panitiaTab, setPanitiaTab] = useState('batch'); // 'batch' | 'buat' | 'verifikasi'
@@ -92,12 +93,23 @@ export default function DashboardPanitiaView({ walletState, connectWallet, showT
     }
 
     setIsSubmittingBatch(true);
-    showToast('Preparing Batch Transaction', `Writing ${batchFiles.length} manuscripts on-chain via Base Sepolia...`, 'info');
+    showToast('Preparing Batch Transaction', `Writing ${batchFiles.length} manuscripts to smart contract...`, 'info');
 
     try {
-      await new Promise(r => setTimeout(r, 2000));
+      if (typeof window !== 'undefined' && window.ethereum) {
+        showToast('Confirm in Wallet', 'Please confirm the batch participation transaction in MetaMask...', 'info');
+        await batchAddParticipationOnChain({
+          items: batchFiles,
+          competitionName: competitionForm.name || 'National Science Symposium 2026',
+          year: competitionForm.year,
+          category: competitionForm.category || 'General',
+          recorderName: 'Official Committee',
+          domain: domainStatus.domain,
+          userAddress: walletState.address
+        });
+      }
 
-      // Save each to local mock registry
+      // Save each to local registry
       for (const item of batchFiles) {
         addParticipationLocal({
           contentHash: item.sha256,
@@ -116,7 +128,11 @@ export default function DashboardPanitiaView({ walletState, connectWallet, showT
       setBatchFiles([]);
     } catch (err) {
       console.error(err);
-      showToast('Registration Failed', err.message, 'error');
+      let msg = err.message || 'Batch transaction failed.';
+      if (err?.code === 4001 || err?.message?.includes('rejected')) {
+        msg = 'Transaction was rejected in your wallet.';
+      }
+      showToast('Registration Failed', msg, 'error');
     } finally {
       setIsSubmittingBatch(false);
     }
@@ -138,43 +154,43 @@ export default function DashboardPanitiaView({ walletState, connectWallet, showT
       
       {/* Header */}
       <section className="text-center space-y-3 pt-4 sm:pt-6">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 dark:bg-[#262626] border border-slate-200 dark:border-[#383838] text-xs font-mono text-slate-700 dark:text-slate-300">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-xs font-mono text-slate-700">
           <ShieldCheck className="w-3.5 h-3.5 text-brand-primary" />
           <span>Institutional Multi-Sig Jury & Verifiable Award Attestation</span>
         </div>
-        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-slate-900 dark:text-white">
+        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-slate-900">
           Competition Committee Dashboard
         </h1>
-        <p className="text-slate-600 dark:text-slate-400 text-xs sm:text-sm max-w-xl mx-auto">
+        <p className="text-slate-600 text-xs sm:text-sm max-w-xl mx-auto">
           Manage competitions, verify institution domain credibility, and record award outcomes on-chain in bulk.
         </p>
       </section>
 
       {/* Domain Verification Notice Banner */}
-      <div className="bg-slate-50 dark:bg-[#262626] border border-slate-200 dark:border-[#383838] rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition-colors">
+      <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition-colors">
         <div className="flex items-center gap-3">
           <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
-            domainStatus.isVerified 
-              ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400' 
-              : 'bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400'
-          }`}>
+ domainStatus.isVerified 
+ ? 'bg-emerald-100 text-emerald-700' 
+ : 'bg-amber-100 text-amber-700'
+ }`}>
             <Globe className="w-5 h-5" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-xs font-bold text-slate-900 dark:text-slate-100">Committee Institutional Domain:</span>
-              <span className="font-mono text-xs text-brand-700 dark:text-[#F5A87B] font-semibold">{domainStatus.domain}</span>
+              <span className="text-xs font-bold text-slate-900">Committee Institutional Domain:</span>
+              <span className="font-mono text-xs text-brand-700 font-semibold">{domainStatus.domain}</span>
               {domainStatus.isVerified ? (
-                <span className="px-2 py-0.2 rounded-full text-[10px] font-mono font-bold bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300">
+                <span className="px-2 py-0.2 rounded-full text-[10px] font-mono font-bold bg-emerald-100 text-emerald-800">
                   Verified
                 </span>
               ) : (
-                <span className="px-2 py-0.2 rounded-full text-[10px] font-mono font-bold bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300">
+                <span className="px-2 py-0.2 rounded-full text-[10px] font-mono font-bold bg-amber-100 text-amber-800">
                   Unverified
                 </span>
               )}
             </div>
-            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+            <p className="text-[11px] text-slate-500 mt-0.5">
               Recorded paper entries will receive a public <strong>Domain Verified</strong> credibility badge.
             </p>
           </div>
@@ -182,44 +198,44 @@ export default function DashboardPanitiaView({ walletState, connectWallet, showT
 
         <button
           onClick={() => setPanitiaTab('verifikasi')}
-          className="px-3.5 py-1.5 rounded-xl border border-slate-300 dark:border-[#383838] hover:bg-white dark:hover:bg-[#303030] text-slate-700 dark:text-slate-300 text-xs font-semibold shrink-0 transition-colors"
+          className="px-3.5 py-1.5 rounded-xl border border-slate-300 hover:bg-white text-slate-700 text-xs font-semibold shrink-0 transition-colors"
         >
           Configure DNS
         </button>
       </div>
 
       {/* Main Action Tabs */}
-      <div className="bg-white dark:bg-[#262626] border border-slate-200 dark:border-[#383838] rounded-3xl p-6 sm:p-8 shadow-card space-y-6 transition-colors duration-200">
+      <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-card space-y-6 transition-colors duration-200">
         
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800/80 pb-4">
-          <div className="flex flex-wrap items-center gap-1.5 p-1 rounded-full bg-slate-100/90 dark:bg-[#1E1E1E] border border-slate-200/80 dark:border-[#383838]">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
+          <div className="flex flex-wrap items-center gap-1.5 p-1 rounded-full bg-slate-100/90 border border-slate-200/80">
             <button
               onClick={() => setPanitiaTab('batch')}
               className={`px-4 py-2 rounded-full text-xs font-semibold transition-all ${
-                panitiaTab === 'batch' 
-                  ? 'bg-gradient-to-r from-[#ED7B46] to-[#EA580C] text-white shadow-sm shadow-orange-500/25' 
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-[#2a2a2a]'
-              }`}
+ panitiaTab === 'batch' 
+ ? 'bg-gradient-to-r from-[#ED7B46] to-[#EA580C] text-white shadow-sm shadow-orange-500/25' 
+ : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+ }`}
             >
               Record Batch Results
             </button>
             <button
               onClick={() => setPanitiaTab('buat')}
               className={`px-4 py-2 rounded-full text-xs font-semibold transition-all ${
-                panitiaTab === 'buat' 
-                  ? 'bg-gradient-to-r from-[#ED7B46] to-[#EA580C] text-white shadow-sm shadow-orange-500/25' 
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-[#2a2a2a]'
-              }`}
+ panitiaTab === 'buat' 
+ ? 'bg-gradient-to-r from-[#ED7B46] to-[#EA580C] text-white shadow-sm shadow-orange-500/25' 
+ : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+ }`}
             >
               Create Competition
             </button>
             <button
               onClick={() => setPanitiaTab('verifikasi')}
               className={`px-4 py-2 rounded-full text-xs font-semibold transition-all ${
-                panitiaTab === 'verifikasi' 
-                  ? 'bg-gradient-to-r from-[#ED7B46] to-[#EA580C] text-white shadow-sm shadow-orange-500/25' 
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-[#2a2a2a]'
-              }`}
+ panitiaTab === 'verifikasi' 
+ ? 'bg-gradient-to-r from-[#ED7B46] to-[#EA580C] text-white shadow-sm shadow-orange-500/25' 
+ : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+ }`}
             >
               Domain Verification (DNS)
             </button>
@@ -230,14 +246,14 @@ export default function DashboardPanitiaView({ walletState, connectWallet, showT
         {panitiaTab === 'batch' && (
           <div className="space-y-5">
             <div>
-              <h2 className="text-base font-bold text-slate-900 dark:text-white">Record Paper Results in Bulk (Batch Upload)</h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              <h2 className="text-base font-bold text-slate-900">Record Paper Results in Bulk (Batch Upload)</h2>
+              <p className="text-xs text-slate-500 mt-0.5">
                 Upload multiple manuscripts at once to assign Participant, Finalist, or Winner awards in a single on-chain transaction.
               </p>
             </div>
 
             {/* Upload multi files dropzone */}
-            <div className="border-2 border-dashed border-slate-200 dark:border-[#383838] hover:border-brand-primary rounded-2xl p-6 text-center cursor-pointer transition-colors bg-slate-50/50 dark:bg-[#1E1E1E]/50">
+            <div className="border-2 border-dashed border-slate-200 hover:border-brand-primary rounded-2xl p-6 text-center cursor-pointer transition-colors bg-slate-50/50">
               <input
                 type="file"
                 multiple
@@ -248,10 +264,10 @@ export default function DashboardPanitiaView({ walletState, connectWallet, showT
               />
               <label htmlFor="batch-file-input" className="cursor-pointer space-y-2 block">
                 <UploadCloud className="w-9 h-9 text-brand-primary mx-auto" />
-                <div className="text-xs font-semibold text-slate-800 dark:text-slate-200">
+                <div className="text-xs font-semibold text-slate-800">
                   {isProcessingBatch ? 'Extracting documents...' : 'Select Multiple Manuscripts (Multi-select PDF / DOCX)'}
                 </div>
-                <div className="text-[11px] text-slate-400 dark:text-slate-500 font-mono">
+                <div className="text-[11px] text-slate-400 font-mono">
                   Automatically extracts titles and computes dual cryptographic fingerprints
                 </div>
               </label>
@@ -261,7 +277,7 @@ export default function DashboardPanitiaView({ walletState, connectWallet, showT
             {batchFiles.length > 0 && (
               <div className="space-y-4">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="font-semibold text-slate-900 dark:text-slate-100 font-mono">
+                  <span className="font-semibold text-slate-900 font-mono">
                     Manuscripts Ready to Record ({batchFiles.length} files):
                   </span>
                   <button 
@@ -272,9 +288,9 @@ export default function DashboardPanitiaView({ walletState, connectWallet, showT
                   </button>
                 </div>
 
-                <div className="overflow-x-auto border border-slate-200 dark:border-[#383838] rounded-xl shadow-sm">
+                <div className="overflow-x-auto border border-slate-200 rounded-xl shadow-sm">
                   <table className="w-full text-left text-xs">
-                    <thead className="bg-slate-50 dark:bg-[#1E1E1E] border-b border-slate-200 dark:border-[#383838] font-mono font-semibold text-slate-700 dark:text-slate-300">
+                    <thead className="bg-slate-50 border-b border-slate-200 font-mono font-semibold text-slate-700">
                       <tr>
                         <th className="py-2.5 px-3">File Name & Title</th>
                         <th className="py-2.5 px-3">Fingerprint</th>
@@ -282,23 +298,23 @@ export default function DashboardPanitiaView({ walletState, connectWallet, showT
                         <th className="py-2.5 px-3">Award / Status</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100 dark:divide-[#383838] text-slate-700 dark:text-slate-300">
+                    <tbody className="divide-y divide-slate-100 text-slate-700">
                       {batchFiles.map((item) => (
-                        <tr key={item.id} className="hover:bg-slate-50/60 dark:hover:bg-[#1E1E1E]/60 transition-colors">
+                        <tr key={item.id} className="hover:bg-slate-50/60 transition-colors">
                           <td className="py-3 px-3">
-                            <div className="font-medium text-slate-900 dark:text-slate-100 truncate max-w-[220px]">{item.fileName}</div>
-                            <div className="text-[11px] text-slate-500 dark:text-slate-400 truncate max-w-[220px]">{item.title}</div>
+                            <div className="font-medium text-slate-900 truncate max-w-[220px]">{item.fileName}</div>
+                            <div className="text-[11px] text-slate-500 truncate max-w-[220px]">{item.title}</div>
                           </td>
-                          <td className="py-3 px-3 font-mono text-[10px] text-slate-500 dark:text-slate-400">
+                          <td className="py-3 px-3 font-mono text-[10px] text-slate-500">
                             <div className="truncate max-w-[120px]">{item.sha256}</div>
                           </td>
                           <td className="py-3 px-3">
                             {item.hasConflict ? (
-                              <span className="px-2 py-0.5 rounded-full font-mono text-[10px] bg-rose-100 dark:bg-rose-950/60 text-rose-800 dark:text-rose-300 font-bold border border-rose-200 dark:border-rose-800/40">
+                              <span className="px-2 py-0.5 rounded-full font-mono text-[10px] bg-rose-100 text-rose-800 font-bold border border-rose-200">
                                 {item.similarityScore}% Similar
                               </span>
                             ) : (
-                              <span className="px-2 py-0.5 rounded-full font-mono text-[10px] bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/40">
+                              <span className="px-2 py-0.5 rounded-full font-mono text-[10px] bg-emerald-100 text-emerald-800 border border-emerald-200">
                                 0% Clean
                               </span>
                             )}
@@ -307,11 +323,11 @@ export default function DashboardPanitiaView({ walletState, connectWallet, showT
                             <select
                               value={item.status}
                               onChange={(e) => handleStatusChange(item.id, e.target.value)}
-                              className="bg-white dark:bg-[#1E1E1E] border border-slate-300 dark:border-[#383838] text-slate-800 dark:text-slate-200 rounded-lg py-1 px-2 text-xs font-semibold focus:outline-none focus:border-brand-primary"
+                              className="bg-white border border-slate-300 text-slate-800 rounded-lg py-1 px-2 text-xs font-semibold focus:outline-none focus:border-brand-primary"
                             >
-                              <option value="Participant" className="bg-white dark:bg-[#1E1E1E] text-slate-800 dark:text-slate-200">Participant</option>
-                              <option value="Finalist" className="bg-white dark:bg-[#1E1E1E] text-slate-800 dark:text-slate-200">Finalist</option>
-                              <option value="Winner" className="bg-white dark:bg-[#1E1E1E] text-slate-800 dark:text-slate-200">Winner</option>
+                              <option value="Participant" className="bg-white text-slate-800">Participant</option>
+                              <option value="Finalist" className="bg-white text-slate-800">Finalist</option>
+                              <option value="Winner" className="bg-white text-slate-800">Winner</option>
                             </select>
                           </td>
                         </tr>
@@ -339,53 +355,53 @@ export default function DashboardPanitiaView({ walletState, connectWallet, showT
         {panitiaTab === 'buat' && (
           <div className="space-y-4 max-w-lg">
             <div>
-              <h2 className="text-base font-bold text-slate-900 dark:text-white">Register New Competition</h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              <h2 className="text-base font-bold text-slate-900">Register New Competition</h2>
+              <p className="text-xs text-slate-500 mt-0.5">
                 Register your competition on the smart contract to become recognized as an official organizer.
               </p>
             </div>
 
             <div className="space-y-3 pt-2">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Competition Name *</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Competition Name *</label>
                 <input
                   type="text"
                   value={competitionForm.name}
                   onChange={(e) => setCompetitionForm(prev => ({ ...prev, name: e.target.value }))}
                   placeholder="e.g. National Green Tech Paper Symposium 2026"
-                  className="w-full bg-slate-50 dark:bg-[#1E1E1E] border border-slate-200 dark:border-[#383838] rounded-xl py-2 px-3 text-xs sm:text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-brand-primary"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand-primary"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Competition Year *</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Competition Year *</label>
                   <input
                     type="number"
                     value={competitionForm.year}
                     onChange={(e) => setCompetitionForm(prev => ({ ...prev, year: e.target.value }))}
-                    className="w-full bg-slate-50 dark:bg-[#1E1E1E] border border-slate-200 dark:border-[#383838] rounded-xl py-2 px-3 text-xs sm:text-sm text-slate-800 dark:text-slate-100 focus:outline-none focus:border-brand-primary"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 text-xs sm:text-sm text-slate-800 focus:outline-none focus:border-brand-primary"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Primary Category *</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Primary Category *</label>
                   <input
                     type="text"
                     value={competitionForm.category}
                     onChange={(e) => setCompetitionForm(prev => ({ ...prev, category: e.target.value }))}
-                    className="w-full bg-slate-50 dark:bg-[#1E1E1E] border border-slate-200 dark:border-[#383838] rounded-xl py-2 px-3 text-xs sm:text-sm text-slate-800 dark:text-slate-100 focus:outline-none focus:border-brand-primary"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 text-xs sm:text-sm text-slate-800 focus:outline-none focus:border-brand-primary"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Official Institutional Domain *</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Official Institutional Domain *</label>
                 <input
                   type="text"
                   value={competitionForm.institutionDomain}
                   onChange={(e) => setCompetitionForm(prev => ({ ...prev, institutionDomain: e.target.value }))}
                   placeholder="e.g. symposium.university.edu"
-                  className="w-full bg-slate-50 dark:bg-[#1E1E1E] border border-slate-200 dark:border-[#383838] rounded-xl py-2 px-3 text-xs sm:text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-brand-primary"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand-primary"
                 />
               </div>
             </div>
@@ -404,25 +420,25 @@ export default function DashboardPanitiaView({ walletState, connectWallet, showT
         {panitiaTab === 'verifikasi' && (
           <div className="space-y-4 max-w-xl">
             <div>
-              <h2 className="text-base font-bold text-slate-900 dark:text-white">Institution Domain Verification</h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              <h2 className="text-base font-bold text-slate-900">Institution Domain Verification</h2>
+              <p className="text-xs text-slate-500 mt-0.5">
                 Prove that your committee wallet is affiliated with your institution domain via a DNS TXT record.
               </p>
             </div>
 
-            <div className="bg-slate-50 dark:bg-[#1E1E1E] border border-slate-200 dark:border-[#383838] rounded-2xl p-4 space-y-3 text-xs">
-              <div className="font-bold text-slate-800 dark:text-slate-200">DNS TXT Configuration Guide:</div>
-              <ol className="list-decimal list-inside text-slate-600 dark:text-slate-400 space-y-1 leading-relaxed">
+            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3 text-xs">
+              <div className="font-bold text-slate-800">DNS TXT Configuration Guide:</div>
+              <ol className="list-decimal list-inside text-slate-600 space-y-1 leading-relaxed">
                 <li>Open your institution domain DNS management panel (e.g. <code>university.edu</code>).</li>
                 <li>Add a new record of type <strong>TXT</strong>.</li>
                 <li>Enter the following verification string into the value/content field:</li>
               </ol>
 
-              <div className="p-2.5 bg-slate-900 dark:bg-black/70 text-emerald-400 font-mono text-[11px] rounded-lg break-all border border-slate-800 dark:border-[#383838]">
+              <div className="p-2.5 bg-slate-900 text-emerald-400 font-mono text-[11px] rounded-lg break-all border border-slate-800">
                 {domainStatus.dnsTxtRecord}
               </div>
 
-              <p className="text-[11px] text-slate-500 dark:text-slate-400">
+              <p className="text-[11px] text-slate-500">
                 Once the DNS record is propagated, click the button below to verify automatically.
               </p>
             </div>
