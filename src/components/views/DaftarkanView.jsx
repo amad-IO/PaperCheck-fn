@@ -152,7 +152,7 @@ export default function DaftarkanView({ walletState, connectWallet, showToast, s
 
   return (
     <div className="w-full max-w-3xl mx-auto space-y-8 pb-16">
-      
+
       {/* Header */}
       <section className="text-center space-y-3 pt-4 sm:pt-6">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-xs font-mono text-slate-700">
@@ -195,12 +195,10 @@ export default function DaftarkanView({ walletState, connectWallet, showToast, s
             { step: 4, title: 'Review & Sign' }
           ].map((item) => (
             <div key={item.step} className="text-center">
-              <div className={`h-1.5 rounded-full mb-1.5 transition-all ${
-                currentStep >= item.step ? 'bg-brand-primary' : 'bg-slate-200'
-              }`}></div>
-              <span className={`text-[11px] font-mono font-medium ${
-                currentStep >= item.step ? 'text-brand-700' : 'text-slate-400'
-              }`}>
+              <div className={`h-1.5 rounded-full mb-1.5 transition-all ${currentStep >= item.step ? 'bg-brand-primary' : 'bg-slate-200'
+                }`}></div>
+              <span className={`text-[11px] font-mono font-medium ${currentStep >= item.step ? 'text-brand-700' : 'text-slate-400'
+                }`}>
                 {item.step}. {item.title}
               </span>
             </div>
@@ -210,7 +208,7 @@ export default function DaftarkanView({ walletState, connectWallet, showToast, s
 
       {/* Form Container */}
       <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-card">
-        
+
         {/* STEP 1: AUTHOR INFO */}
         {currentStep === 1 && (
           <div className="space-y-4 animate-in fade-in duration-200">
@@ -250,7 +248,7 @@ export default function DaftarkanView({ walletState, connectWallet, showToast, s
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Contact Email</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Contact Email (Optional)</label>
                 <input
                   type="email"
                   name="email"
