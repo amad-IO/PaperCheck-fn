@@ -1,57 +1,92 @@
 # PaperCheck - Frontend Registry Naskah LKTI
 
-Platform verifikasi orisinalitas naskah karya ilmiah (LKTI) terdesentralisasi berbasis Web3 tanpa server terpusat. Naskah karya ilmiah diproses dan diekstrak secara lokal langsung di memori browser pengguna (*client-side*) untuk menjamin kerahasiaan dan hak kekayaan intelektual peserta sebelum kompetisi.
+PaperCheck is a decentralized Web3 application for checking manuscript originality and registering paper proof-of-existence on a blockchain. The application performs document extraction locally in the browser so the manuscript content stays private and is never uploaded to a server.
 
 ---
 
-## Fitur Utama
+## Features
 
-1. **Jaminan Privasi Penuh (Zero-Server Leak)**:
-   - Berkas naskah (PDF/DOCX) tidak pernah diunggah ke server manapun.
-   - Ekstraksi teks lokal menggunakan `pdfjs-dist` (untuk PDF) dan `mammoth.js` (untuk DOCX).
-2. **Dual-Fingerprint Mesin Analisis**:
-   - **SHA-256** via native Web Crypto API untuk mendeteksi naskah yang 100% identik.
-   - **SimHash 64-bit** berbasis FNV-1a dan pembersihan stop words untuk mendeteksi naskah parafrase atau kesamaan substansi ide.
-3. **4 Modul Terintegrasi**:
-   - **Cek Naskah**: Drag & drop naskah atau tempel abstrak untuk verifikasi orisinalitas instan dengan 3 status (Bersih, Pernah Ikut, Mirip Naskah Lain).
-   - **Daftarkan Naskah**: Stepper 4 langkah pendaftaran naskah oleh peserta dengan penerbitan Sertifikat Bukti Waktu on-chain.
-   - **Dashboard Panitia**: Pembuatan lomba, panduan verifikasi domain institusi kampus via DNS TXT, dan fitur pencatatan hasil massal (*batch upload*).
-   - **Detail & Linimasa**: Audit linimasa riwayat keikutsertaan lomba dan hak bantah klaim (*dispute*) bagi pemilik asli naskah.
-4. **Visual Showcase Sesuai Spesifikasi**:
-   - Tampilan hero bertumpuk seragam (*fanned stacked cards*) bergaya Neuform / System Metriqs, dipadukan dengan area kerja formulir fungsional di bawahnya.
+1. **Full Privacy Protection**
+   - Manuscript files are never uploaded to any server.
+   - Text extraction is done locally with `pdfjs-dist` for PDF and `mammoth` for DOCX files.
+2. **Dual-Fingerprint Verification**
+   - **SHA-256** via the browser Web Crypto API.
+   - **SimHash 64-bit** for detecting paraphrased or substantively similar manuscripts.
+3. **Integrated Modules**
+   - **Check Paper**: verify originality using uploaded manuscripts or pasted abstracts.
+   - **Register Paper**: register a manuscript on-chain with a timestamped proof-of-existence.
+   - **Committee Dashboard**: manage competition records and domain verification.
+   - **Paper Details**: inspect blockchain timeline and dispute history.
+4. **Visual Frontend Showcase**
+   - A polished UI with stacked card design and registration flow built for the PaperCheck workflow.
 
 ---
 
-## Teknologi yang Digunakan
+## Tech Stack
 
-- **Framework**: Next.js 14 (App Router), React 18
+- **Framework**: Next.js 14, React 18
 - **Styling**: Tailwind CSS, PostCSS, Autoprefixer
-- **Web3 & Blockchain**: Viem, Wagmi, RainbowKit (Target Jaringan: Base Sepolia / Lisk Sepolia)
-- **Ekstraksi Dokumen**: PDF.js (`pdfjs-dist`), Mammoth.js
-- **Kriptografi**: Web Crypto API (SHA-256), SimHash 64-bit Custom Module
-- **Ikon**: Lucide React
+- **Blockchain**: Viem, Wagmi (targeted to Bohr Testnet / EVM-compatible chains)
+- **Document Parsing**: PDF.js, Mammoth
+- **Cryptography**: Web Crypto API, custom SimHash implementation
+- **Icons**: Lucide React
 
 ---
 
-## Cara Menjalankan Proyek Secara Lokal
+## Environment Setup
 
-1. Pasang dependensi proyek:
+This project needs environment variables for the contract address.
+
+1. Copy the example file:
+   ```bash
+   copy .env.example .env
+   ```
+   or on Linux/macOS:
+   ```bash
+   cp .env.example .env
+   ```
+
+2. Update the contract address in the `.env` file:
+   ```env
+   NEXT_PUBLIC_CONTRACT_ADDRESS=0xYourContractAddressHere
+   ```
+
+3. Keep `.env.example` as a template for other developers, and do not commit your real secret values if you add any later.
+
+---
+
+## Local Setup
+
+1. Install dependencies:
    ```bash
    npm install
    ```
 
-2. Jalankan server pengembangan lokal:
+2. Create environment file from template:
+   ```bash
+   copy .env.example .env
+   ```
+
+3. Start the app:
    ```bash
    npm run dev
    ```
 
-3. Buka peramban di alamat:
-   ```
+4. Open the project in the browser:
+   ```text
    http://localhost:3000
    ```
 
-4. Untuk membangun versi produksi:
+5. Production build:
    ```bash
    npm run build
    npm run start
    ```
+
+---
+
+## Notes
+
+- The smart contract address is read from `NEXT_PUBLIC_CONTRACT_ADDRESS`.
+- The project is configured to use environment variables from `.env` in a Next.js app.
+- If you deploy a new contract, update the value in `.env` and restart the app.

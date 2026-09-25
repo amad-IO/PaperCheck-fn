@@ -2,7 +2,13 @@ import CONTRACT_ABI from './contractAbi.json';
 import { encodeFunctionData, createPublicClient, http, custom, defineChain } from 'viem';
 import { baseSepolia, sepolia, liskSepolia, arbitrumSepolia, polygonAmoy } from 'viem/chains';
 
-export const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || '0x35A323b4543BE05666fB953dae959d303A06325E';
+const contractAddress = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS;
+
+if (!contractAddress) {
+  throw new Error('NEXT_PUBLIC_CONTRACT_ADDRESS is not set. Add it to your .env file.');
+}
+
+export const CONTRACT_ADDRESS = contractAddress;
 
 export { CONTRACT_ABI };
 
@@ -580,7 +586,7 @@ export async function fetchSingleManuscriptFromChain({
       } else if (m.simHash) {
         formattedSimHash = '0x' + BigInt(m.simHash).toString(16).padStart(16, '0');
       }
-    } catch (e) {}
+    } catch (e) { }
 
     return {
       contentHash: m.contentHash,
