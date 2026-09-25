@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { UploadCloud, FileText, CheckCircle2, Search, ArrowRight, Shield, AlertCircle, RefreshCw } from 'lucide-react';
+import { UploadCloud, CheckCircle2, Shield, RefreshCw } from 'lucide-react';
 import { extractTextFromFile } from '../../lib/parser';
 import { generateDocumentFingerprint } from '../../lib/hasher';
 import { checkManuscriptRegistry, mergeWithOnChainData } from '../../lib/mockRegistry';
@@ -9,10 +9,8 @@ import { fetchManuscriptsFromChain, CONTRACT_ADDRESS, getExplorerTxUrl, getExplo
 import StatusCard from '../StatusCard';
 
 export default function CekNaskahView({ showToast, walletState }) {
-  const [activeInputMode, setActiveInputMode] = useState('upload'); // 'upload' | 'text'
   const [dragActive, setDragActive] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
-  const [abstractText, setAbstractText] = useState('');
   
   // Processing States
   const [isProcessing, setIsProcessing] = useState(false);
@@ -21,35 +19,6 @@ export default function CekNaskahView({ showToast, walletState }) {
   const [inspectionResult, setInspectionResult] = useState(null);
 
   const fileInputRef = useRef(null);
-  const tabRefs = useRef({});
-  const [indicatorStyle, setIndicatorStyle] = useState({
-    left: 0,
-    width: 0,
-    ready: false,
-    animating: false,
-  });
-
-  useEffect(() => {
-    const updateIndicator = () => {
-      const activeEl = tabRefs.current[activeInputMode];
-      if (activeEl) {
-        setIndicatorStyle((prev) => ({
-          left: activeEl.offsetLeft,
-          width: activeEl.offsetWidth,
-          ready: true,
-          animating: prev.ready,
-        }));
-      }
-    };
-
-    updateIndicator();
-    const rAf = requestAnimationFrame(updateIndicator);
-    window.addEventListener('resize', updateIndicator);
-    return () => {
-      cancelAnimationFrame(rAf);
-      window.removeEventListener('resize', updateIndicator);
-    };
-  }, [activeInputMode]);
 
   useEffect(() => {
     // Silent background sync with smart contract so similarity checks include latest on-chain manuscripts
@@ -108,23 +77,17 @@ export default function CekNaskahView({ showToast, walletState }) {
     processDocument(file);
   };
 
-  const processDocument = async (fileOrText) => {
+  const processDocument = async (file) => {
     setIsProcessing(true);
     setInspectionResult(null);
 
     try {
-      let rawText = '';
-
       // Step 1: Text extraction in browser
       setProgressStep(1);
       setProgressMessage('Extracting document text in browser (private)...');
       await new Promise(r => setTimeout(r, 400));
 
-      if (typeof fileOrText === 'string') {
-        rawText = fileOrText;
-      } else {
-        rawText = await extractTextFromFile(fileOrText);
-      }
+      const rawText = await extractTextFromFile(file);
 
       if (!rawText || rawText.trim().length < 30) {
         throw new Error('Document text is too short or empty. Please ensure the file contains readable text.');
@@ -155,17 +118,8 @@ export default function CekNaskahView({ showToast, walletState }) {
     }
   };
 
-  const handleManualCheck = () => {
-    if (!abstractText || abstractText.trim().length < 50) {
-      showToast('Insufficient Text', 'Enter at least 50 characters of abstract to analyze.', 'warning');
-      return;
-    }
-    processDocument(abstractText);
-  };
-
   const handleReset = () => {
     setSelectedFile(null);
-    setAbstractText('');
     setInspectionResult(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
@@ -200,49 +154,14 @@ export default function CekNaskahView({ showToast, walletState }) {
       {/* Main Inspection Card */}
       <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-card space-y-6 transition-colors duration-200">
         
-        {/* Mode Switcher Tabs with Sliding Orange Gradient Capsule */}
+        {/* Header and Reset */}
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
-          <div className="relative flex items-center p-1 rounded-full bg-slate-100/90 border border-slate-200/80 shadow-inner">
-            {/* Sliding Orange Gradient Capsule Pill */}
-            <span
-              className={`absolute top-1 bottom-1 rounded-full bg-gradient-to-r from-[#ED7B46] to-[#EA580C] shadow-sm shadow-orange-500/25 pointer-events-none ${
- indicatorStyle.animating ? 'transition-all duration-300 ease-[cubic-bezier(0.25,1,0.5,1)]' : ''
- }`}
-              style={{
-                left: `${indicatorStyle.left}px`,
-                width: `${indicatorStyle.width}px`,
-                opacity: indicatorStyle.ready ? 1 : 0,
-              }}
-            />
-
-            <button
-              ref={(el) => (tabRefs.current['upload'] = el)}
-              onClick={() => setActiveInputMode('upload')}
-              className={`relative z-10 flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold transition-colors duration-200 select-none ${
- activeInputMode === 'upload' 
- ? 'text-white' 
- : 'text-slate-600 hover:text-slate-900'
- }`}
-            >
-              <UploadCloud className="w-3.5 h-3.5" />
-              <span>Upload Document (PDF / DOCX)</span>
-            </button>
-
-            <button
-              ref={(el) => (tabRefs.current['text'] = el)}
-              onClick={() => setActiveInputMode('text')}
-              className={`relative z-10 flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold transition-colors duration-200 select-none ${
- activeInputMode === 'text' 
- ? 'text-white' 
- : 'text-slate-600 hover:text-slate-900'
- }`}
-            >
-              <FileText className="w-3.5 h-3.5" />
-              <span>Paste Abstract</span>
-            </button>
+          <div>
+            <h2 className="text-base sm:text-lg font-bold text-slate-900">Upload Manuscript File</h2>
+            <p className="text-xs text-slate-500 font-medium">Supports PDF, Word (.docx), or plain text (.txt) format</p>
           </div>
 
-          {(selectedFile || abstractText || inspectionResult) && (
+          {(selectedFile || inspectionResult) && (
             <button
               onClick={handleReset}
               className="px-3.5 py-1.5 rounded-full text-xs text-slate-500 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 flex items-center gap-1.5 font-mono transition-all shadow-sm"
@@ -253,82 +172,51 @@ export default function CekNaskahView({ showToast, walletState }) {
           )}
         </div>
 
-        {/* INPUT MODE 1: DRAG & DROP FILE */}
-        {activeInputMode === 'upload' && (
-          <div className="space-y-3">
-            <div
-              onDragEnter={handleDrag}
-              onDragLeave={handleDrag}
-              onDragOver={handleDrag}
-              onDrop={handleDrop}
-              onClick={() => fileInputRef.current?.click()}
-              className={`relative border-2 border-dashed rounded-2xl p-8 sm:p-12 text-center cursor-pointer transition-all ${
- dragActive 
- ? 'border-brand-primary bg-brand-50/50 scale-[0.99]' 
- : selectedFile 
- ? 'border-slate-300 bg-slate-50/50' 
- : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50/30'
- }`}
-            >
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".pdf,.docx,.txt"
-                onChange={handleFileChange}
-                className="hidden"
-              />
+        {/* Drag & Drop File Upload */}
+        <div className="space-y-3">
+          <div
+            onDragEnter={handleDrag}
+            onDragLeave={handleDrag}
+            onDragOver={handleDrag}
+            onDrop={handleDrop}
+            onClick={() => fileInputRef.current?.click()}
+            className={`relative border-2 border-dashed rounded-2xl p-8 sm:p-12 text-center cursor-pointer transition-all ${
+              dragActive 
+                ? 'border-brand-primary bg-brand-50/50 scale-[0.99]' 
+                : selectedFile 
+                ? 'border-slate-300 bg-slate-50/50' 
+                : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50/30'
+            }`}
+          >
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".pdf,.docx,.txt"
+              onChange={handleFileChange}
+              className="hidden"
+            />
 
-              <div className="flex flex-col items-center justify-center space-y-3">
-                <UploadCloud className="w-10 h-10 text-brand-primary" />
-                <div>
-                  <p className="text-sm font-semibold text-slate-800">
-                    {selectedFile ? selectedFile.name : 'Drag & drop manuscript here, or click to browse'}
-                  </p>
-                  <p className="text-xs text-slate-400 mt-1 font-mono">
-                    Supports PDF or Word (.docx, .txt) up to 25 MB
-                  </p>
-                </div>
+            <div className="flex flex-col items-center justify-center space-y-3">
+              <UploadCloud className="w-10 h-10 text-brand-primary" />
+              <div>
+                <p className="text-sm font-semibold text-slate-800">
+                  {selectedFile ? selectedFile.name : 'Drag & drop manuscript here, or click to browse'}
+                </p>
+                <p className="text-xs text-slate-400 mt-1 font-mono">
+                  Supports PDF or Word (.docx, .txt) up to 25 MB
+                </p>
               </div>
             </div>
-
-            {/* Privacy Guarantee Note */}
-            <div className="flex items-center gap-2 text-xs text-slate-500 bg-slate-50 px-3.5 py-2.5 rounded-xl border border-slate-100">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-              <span>
-                <strong>Client-Side Privacy Guarantee:</strong> Your document is parsed and hashed locally in memory. The actual text is never uploaded to any server.
-              </span>
-            </div>
           </div>
-        )}
 
-        {/* INPUT MODE 2: PASTE ABSTRACT */}
-        {activeInputMode === 'text' && (
-          <div className="space-y-3">
-            <div>
-              <textarea
-                rows={7}
-                value={abstractText}
-                onChange={(e) => setAbstractText(e.target.value)}
-                placeholder="Paste the abstract paragraph of your scientific paper here to analyze text fingerprint..."
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3.5 text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary transition-all font-sans leading-relaxed"
-              />
-            </div>
-            
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] text-slate-400 font-mono">
-                {abstractText.length} characters • {abstractText.trim() ? abstractText.trim().split(/\s+/).length : 0} words
-              </span>
-              <button
-                onClick={handleManualCheck}
-                disabled={isProcessing || !abstractText.trim()}
-                className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-brand-primary hover:bg-brand-600 text-white text-xs font-semibold shadow-sm transition-all disabled:opacity-50"
-              >
-                <span>Analyze Abstract</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </button>
-            </div>
+          {/* Privacy Guarantee Note */}
+          <div className="flex items-center gap-2 text-xs text-slate-500 bg-slate-50 px-3.5 py-2.5 rounded-xl border border-slate-100">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+            <span>
+              <strong>Client-Side Privacy Guarantee:</strong> Your document is parsed and hashed locally in memory. The actual text is never uploaded to any server.
+            </span>
           </div>
-        )}
+        </div>
 
         {/* Progress Bar & Indicators during Processing */}
         {isProcessing && (
