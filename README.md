@@ -55,7 +55,7 @@ This project needs environment variables for the contract address.
 
 ---
 
-## Local Setup
+## Local Setupx`
 
 1. Install dependencies:
    ```bash
