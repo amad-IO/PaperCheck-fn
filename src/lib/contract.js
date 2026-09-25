@@ -563,7 +563,7 @@ export async function fetchSingleManuscriptFromChain({
       } else if (m.simHash) {
         formattedSimHash = '0x' + BigInt(m.simHash).toString(16).padStart(16, '0');
       }
-    } catch (e) {}
+    } catch (e) { }
 
     return {
       contentHash: m.contentHash,
