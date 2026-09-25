@@ -1,10 +1,10 @@
 'use client';
 
 import React from 'react';
-import { CheckCircle, AlertTriangle, AlertOctagon, Download, ExternalLink } from 'lucide-react';
+import { CheckCircle, AlertTriangle, AlertOctagon, ExternalLink } from 'lucide-react';
 import BadgePill from './BadgePill';
 
-export default function StatusCard({ result, onDownloadPdf, onViewExplorer }) {
+export default function StatusCard({ result, onViewExplorer }) {
   if (!result) return null;
 
   const { status, similarityPercentage, manuscript, participations, sha256, simHash } = result;
@@ -164,27 +164,26 @@ export default function StatusCard({ result, onDownloadPdf, onViewExplorer }) {
         </div>
       )}
 
-      {/* Action Buttons: Download PDF Report & Block Explorer */}
+      {/* Action Buttons: Block Explorer */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
         <p className="text-[11px] text-slate-500 italic">
-          *This information is presented objectively based on smart contract time-stamped proof.
+          {result.manuscript?.txHash 
+            ? '*This manuscript is verified on-chain with immutable transaction timestamp.' 
+            : '*Clean paper is not yet registered on-chain. Inspect PaperCheck contract on BohrScan.'}
         </p>
-        <div className="flex items-center gap-2 w-full sm:w-auto">
-          <button
-            onClick={onDownloadPdf}
-            className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 text-xs font-semibold shadow-sm transition-all"
-          >
-            <Download className="w-3.5 h-3.5 text-slate-500" />
-            <span>Download Report (PDF)</span>
-          </button>
-          <button
-            onClick={onViewExplorer}
-            className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-brand-primary hover:bg-brand-600 text-white text-xs font-semibold shadow-sm transition-all active:scale-95"
-          >
-            <ExternalLink className="w-3.5 h-3.5" />
-            <span>View on Explorer</span>
-          </button>
-        </div>
+        {onViewExplorer && (
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <button
+              onClick={onViewExplorer}
+              className="w-full sm:w-auto flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-brand-primary hover:bg-brand-600 text-white text-xs font-semibold shadow-sm transition-all active:scale-95"
+            >
+              <ExternalLink className="w-3.5 h-3.5" />
+              <span>
+                {result.manuscript?.txHash ? 'View Tx on Explorer' : 'View Contract on Explorer'}
+              </span>
+            </button>
+          </div>
+        )}
       </div>
 
     </div>

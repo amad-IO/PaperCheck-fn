@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Shield, User, FileText, UploadCloud, CheckCircle2, Lock, ArrowLeft, Download, ExternalLink, Award } from 'lucide-react';
+import { Shield, User, FileText, UploadCloud, CheckCircle2, Lock, ArrowLeft, ExternalLink, Award } from 'lucide-react';
 import { extractTextFromFile } from '../../lib/parser';
 import { generateDocumentFingerprint } from '../../lib/hasher';
 import { registerManuscriptLocal } from '../../lib/mockRegistry';
@@ -533,19 +533,12 @@ export default function DaftarkanView({ walletState, connectWallet, showToast, s
                   href={getExplorerTxUrl(registrationReceipt.txHash, walletState.chainId)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold shadow-sm transition-all"
+                  className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl bg-brand-primary hover:bg-brand-600 text-white text-xs font-semibold shadow-sm transition-all active:scale-95"
                 >
                   <ExternalLink className="w-3.5 h-3.5" />
                   <span>View On Explorer</span>
                 </a>
               )}
-              <button
-                onClick={() => showToast('Downloading Certificate', 'Registration certificate is downloading.', 'info')}
-                className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl bg-brand-primary hover:bg-brand-600 text-white text-xs font-semibold shadow-sm transition-all active:scale-95"
-              >
-                <Download className="w-3.5 h-3.5" />
-                <span>Download Certificate (PDF)</span>
-              </button>
               <button
                 onClick={() => setActiveTab('cek')}
                 className="w-full sm:w-auto px-5 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold"

@@ -233,6 +233,7 @@ export function mergeWithOnChainData(onChainList) {
         registrant: onChainItem.registrant || existing.registrant,
         simHash: onChainItem.simHash || existing.simHash,
         registeredAt: onChainItem.registeredAt || existing.registeredAt,
+        txHash: onChainItem.txHash || existing.txHash || null,
         participations: (onChainItem.participations && onChainItem.participations.length > 0)
           ? onChainItem.participations
           : (existing.participations || []),

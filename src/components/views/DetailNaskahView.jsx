@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { FileText, Calendar, Hash, ShieldAlert, CheckCircle2, User, ExternalLink, ShieldCheck, AlertCircle, History, ChevronDown, Check, Award, RefreshCw, Radio } from 'lucide-react';
 import { getRegistry, disputeClaimLocal, mergeWithOnChainData, INITIAL_REGISTRY } from '../../lib/mockRegistry';
-import { disputeParticipationOnChain, getExplorerTxUrl, fetchManuscriptsFromChain, CONTRACT_ADDRESS, getNetworkName } from '../../lib/contract';
+import { disputeParticipationOnChain, getExplorerTxUrl, getExplorerAddressUrl, fetchManuscriptsFromChain, CONTRACT_ADDRESS, getNetworkName } from '../../lib/contract';
 import BadgePill from '../BadgePill';
 
 export default function DetailNaskahView({ walletState, showToast, setActiveTab }) {
@@ -394,19 +394,21 @@ export default function DetailNaskahView({ walletState, showToast, setActiveTab 
               </div>
             </div>
 
-            {currentManuscript.txHash && (
+            {(currentManuscript.txHash || currentManuscript.isOnChain) && (
               <div className="p-3.5 bg-emerald-50/70 border border-emerald-200 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
                 <div className="space-y-0.5">
                   <div className="flex items-center gap-1.5 text-[10px] text-emerald-800 uppercase font-semibold">
                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                     <span>On-Chain Registration Transaction Hash</span>
                   </div>
-                  <div className="text-[11px] font-bold text-slate-900 break-all">
-                    {currentManuscript.txHash}
+                  <div className="text-[11px] font-bold text-slate-900 break-all font-mono">
+                    {currentManuscript.txHash || 'Confirmed On-Chain (Smart Contract Verified)'}
                   </div>
                 </div>
                 <a
-                  href={getExplorerTxUrl(currentManuscript.txHash, walletState.chainId)}
+                  href={currentManuscript.txHash 
+                    ? getExplorerTxUrl(currentManuscript.txHash, walletState?.chainId || 968)
+                    : getExplorerAddressUrl(CONTRACT_ADDRESS, walletState?.chainId || 968)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-emerald-300 text-emerald-800 hover:bg-emerald-50 text-xs font-semibold shadow-sm transition-all"
@@ -472,7 +474,7 @@ export default function DetailNaskahView({ walletState, showToast, setActiveTab 
 
                     {currentManuscript.txHash ? (
                       <a
-                        href={getExplorerTxUrl(currentManuscript.txHash, walletState.chainId)}
+                        href={getExplorerTxUrl(currentManuscript.txHash, walletState?.chainId || 968)}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white border border-emerald-300 text-emerald-800 hover:bg-emerald-100 text-xs font-semibold shadow-sm transition-all"
@@ -481,9 +483,15 @@ export default function DetailNaskahView({ walletState, showToast, setActiveTab 
                         <span>View Tx On Explorer ({currentManuscript.txHash.slice(0, 10)}...)</span>
                       </a>
                     ) : (
-                      <span className="text-[11px] text-slate-400 italic">
-                        Permanent Timestamp Locked
-                      </span>
+                      <a
+                        href={getExplorerAddressUrl(CONTRACT_ADDRESS, walletState?.chainId || 968)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white border border-emerald-300 text-emerald-800 hover:bg-emerald-100 text-xs font-semibold shadow-sm transition-all"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>View Contract On Explorer</span>
+                      </a>
                     )}
                   </div>
                 </div>

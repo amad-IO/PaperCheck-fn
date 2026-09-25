@@ -49,17 +49,17 @@ export const KNOWN_CHAINS = {
   },
   84532: {
     name: 'Base Sepolia',
-    explorer: 'https://sepolia.basescan.org',
+    explorer: 'https://scan.bohr.life',
     rpc: 'https://sepolia.base.org',
   },
   11155111: {
     name: 'Ethereum Sepolia',
-    explorer: 'https://sepolia.etherscan.io',
+    explorer: 'https://scan.bohr.life',
     rpc: 'https://ethereum-sepolia-rpc.publicnode.com',
   },
   4202: {
     name: 'Lisk Sepolia',
-    explorer: 'https://sepolia-blockscout.lisk.com',
+    explorer: 'https://scan.bohr.life',
     rpc: 'https://rpc.sepolia-api.lisk.com',
   },
   80002: {
@@ -69,7 +69,7 @@ export const KNOWN_CHAINS = {
   },
   421614: {
     name: 'Arbitrum Sepolia',
-    explorer: 'https://sepolia.arbiscan.io',
+    explorer: 'https://scan.bohr.life',
     rpc: 'https://sepolia-rollup.arbitrum.io/rpc',
   },
 };
@@ -84,19 +84,17 @@ export function getNetworkName(chainId) {
 export function getExplorerTxUrl(txHash, chainId) {
   if (!txHash) return '#';
   const known = KNOWN_CHAINS[Number(chainId)];
-  if (known && known.explorer) {
-    return `${known.explorer}/tx/${txHash}`;
-  }
-  return `https://scan.bohr.life/tx/${txHash}`;
+  const rawBase = (known && known.explorer) ? known.explorer : 'https://scan.bohr.life';
+  const base = rawBase.replace(/\/+$/, '');
+  return `${base}/tx/${txHash}`;
 }
 
 export function getExplorerAddressUrl(address, chainId) {
   if (!address) return '#';
   const known = KNOWN_CHAINS[Number(chainId)];
-  if (known && known.explorer) {
-    return `${known.explorer}/address/${address}`;
-  }
-  return `https://scan.bohr.life/address/${address}`;
+  const rawBase = (known && known.explorer) ? known.explorer : 'https://scan.bohr.life';
+  const base = rawBase.replace(/\/+$/, '');
+  return `${base}/address/${address}`;
 }
 
 /**
@@ -424,6 +422,25 @@ export async function fetchManuscriptsFromChain({
       return [];
     }
 
+    // Fetch on-chain registration logs to extract real transaction hashes
+    const txHashMap = new Map();
+    try {
+      const logs = await client.getLogs({
+        address,
+        fromBlock: 0n,
+        toBlock: 'latest'
+      });
+      if (Array.isArray(logs)) {
+        for (const log of logs) {
+          if (log.topics && log.topics[1] && log.transactionHash) {
+            txHashMap.set(log.topics[1].toLowerCase(), log.transactionHash);
+          }
+        }
+      }
+    } catch (logErr) {
+      console.warn('Could not fetch logs for txHash mapping:', logErr);
+    }
+
     // 2. Fetch details for each hash
     const manuscripts = [];
     for (const rawHash of hashes) {
@@ -488,7 +505,7 @@ export async function fetchManuscriptsFromChain({
           institution: m.institution || 'General',
           registeredAt: m.registeredAt ? Number(m.registeredAt) * 1000 : Date.now(),
           registrant: m.registrant || '0x0000000000000000000000000000000000000000',
-          txHash: null,
+          txHash: txHashMap.get((m.contentHash || '').toLowerCase()) || null,
           participations,
           isOnChain: true
         });

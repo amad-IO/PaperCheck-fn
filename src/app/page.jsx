@@ -570,7 +570,7 @@ export default function Home() {
             className={`w-full ${slideDirection === 'forward' ? 'page-slide-forward' : 'page-slide-backward'}`}
           >
             {activeTab === 'cek' && (
-              <CekNaskahView showToast={showToast} />
+              <CekNaskahView showToast={showToast} walletState={walletState} />
             )}
 
             {activeTab === 'daftarkan' && (

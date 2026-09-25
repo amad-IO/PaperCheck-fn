@@ -5,10 +5,10 @@ import { UploadCloud, FileText, CheckCircle2, Search, ArrowRight, Shield, AlertC
 import { extractTextFromFile } from '../../lib/parser';
 import { generateDocumentFingerprint } from '../../lib/hasher';
 import { checkManuscriptRegistry, SAMPLE_ABSTRACTS, mergeWithOnChainData } from '../../lib/mockRegistry';
-import { fetchManuscriptsFromChain, CONTRACT_ADDRESS } from '../../lib/contract';
+import { fetchManuscriptsFromChain, CONTRACT_ADDRESS, getExplorerTxUrl, getExplorerAddressUrl } from '../../lib/contract';
 import StatusCard from '../StatusCard';
 
-export default function CekNaskahView({ showToast }) {
+export default function CekNaskahView({ showToast, walletState }) {
   const [activeInputMode, setActiveInputMode] = useState('upload'); // 'upload' | 'text'
   const [dragActive, setDragActive] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
@@ -177,13 +177,14 @@ export default function CekNaskahView({ showToast }) {
     processDocument(text);
   };
 
-  const handleDownloadPdf = () => {
-    showToast('Report Ready', 'Manuscript integrity verification report is downloading.', 'info');
-  };
-
   const handleViewExplorer = () => {
-    const hash = inspectionResult?.sha256 || '0x';
-    window.open(`https://sepolia.basescan.org/tx/${hash}`, '_blank');
+    const chainId = walletState?.chainId || 968;
+    if (inspectionResult?.manuscript?.txHash) {
+      window.open(getExplorerTxUrl(inspectionResult.manuscript.txHash, chainId), '_blank');
+      return;
+    }
+    // Jika naskah berstatus bersih (belum terdaftar) atau belum ada txHash, buka alamat Smart Contract di explorer
+    window.open(getExplorerAddressUrl(CONTRACT_ADDRESS, chainId), '_blank');
   };
 
   return (
@@ -382,7 +383,6 @@ export default function CekNaskahView({ showToast }) {
         {inspectionResult && (
           <StatusCard 
             result={inspectionResult} 
-            onDownloadPdf={handleDownloadPdf}
             onViewExplorer={handleViewExplorer}
           />
         )}
