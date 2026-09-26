@@ -235,9 +235,10 @@ export default function DetailNaskahView({ walletState, showToast, setActiveTab 
       
       {/* Header */}
       <section className="text-center space-y-3 pt-4 sm:pt-6">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-xs font-mono text-slate-700">
-          <History className="w-3.5 h-3.5 text-brand-primary" />
-          <span>Immutable Public Audit Trail & Dispute Resolution</span>
+        <div className="inline-flex items-center justify-center gap-2 px-3.5 py-1.5 rounded-xl sm:rounded-full bg-slate-100 border border-slate-200 text-[11px] sm:text-xs font-mono text-slate-700 text-center max-w-full">
+          <History className="w-3.5 h-3.5 text-brand-primary shrink-0" />
+          <span className="hidden sm:inline">Immutable Public Audit Trail & Dispute Resolution</span>
+          <span className="sm:hidden">Public Audit Trail & Dispute Resolution</span>
         </div>
         <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-slate-900">
           Paper Details & Blockchain Timeline
@@ -305,7 +306,7 @@ export default function DetailNaskahView({ walletState, showToast, setActiveTab 
                 </button>
 
                 {dropdownOpen && (
-                  <div className="absolute left-0 top-full mt-2 w-full sm:w-[420px] bg-white border border-slate-200/90 rounded-2xl shadow-xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+                  <div className="absolute left-0 top-full mt-2 w-full max-w-[calc(100vw-2.5rem)] sm:w-[420px] bg-white border border-slate-200/90 rounded-2xl shadow-xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
                     {/* Search Bar Header */}
                     <div className="p-2.5 border-b border-slate-100 bg-slate-50/70 backdrop-blur-sm sticky top-0 z-10">
                       <div className="relative flex items-center">
@@ -539,11 +540,11 @@ export default function DetailNaskahView({ walletState, showToast, setActiveTab 
                 <div className="bg-emerald-50/70 border border-emerald-200 rounded-2xl p-4 sm:p-5 space-y-3">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                     <div>
-                      <div className="flex items-center gap-2">
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-200 text-emerald-900 uppercase">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-2">
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-200 text-emerald-900 uppercase whitespace-nowrap self-start shrink-0">
                           Transaksi #1 (Genesis)
                         </span>
-                        <h4 className="font-bold text-sm text-slate-900">
+                        <h4 className="font-bold text-sm text-slate-900 leading-snug">
                           Initial Paper Registration (Proof-of-Existence)
                         </h4>
                       </div>
@@ -604,12 +605,14 @@ export default function DetailNaskahView({ walletState, showToast, setActiveTab 
                   <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 sm:p-5 space-y-3">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                       <div>
-                        <div className="flex items-center gap-2">
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-slate-200 text-slate-700 uppercase">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-2">
+                          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-slate-200 text-slate-700 uppercase whitespace-nowrap self-start shrink-0">
                             Transaksi #{index + 2}
                           </span>
-                          <h4 className="font-bold text-sm text-slate-900">{part.competitionName}</h4>
-                          <span className="font-mono text-xs text-slate-400">({part.year})</span>
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <h4 className="font-bold text-sm text-slate-900 leading-snug">{part.competitionName}</h4>
+                            <span className="font-mono text-xs text-slate-400">({part.year})</span>
+                          </div>
                         </div>
                         <div className="text-xs text-slate-500 font-mono mt-0.5">
                           Category: {part.category}

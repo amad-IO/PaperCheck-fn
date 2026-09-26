@@ -1,11 +1,13 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Wallet, Menu, X } from 'lucide-react';
 import { getNetworkName } from '../lib/contract';
 
 export default function Navbar({ activeTab, setActiveTab, walletState, connectWallet, disconnectWallet }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const [indicatorStyle, setIndicatorStyle] = useState({
     left: 0,
     width: 0,
@@ -15,6 +17,10 @@ export default function Navbar({ activeTab, setActiveTab, walletState, connectWa
     animating: false,
   });
   const tabRefs = useRef({});
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const navItems = [
     { id: 'cek', label: 'Check Paper' },
@@ -62,7 +68,7 @@ export default function Navbar({ activeTab, setActiveTab, walletState, connectWa
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-[#ED7B46]/20 backdrop-blur-md border-b border-[#ED7B46]/25 shadow-sm">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-[#ED7B46]/20 shadow-sm rounded-b-2xl sm:rounded-b-3xl w-full transition-all">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           
@@ -127,39 +133,41 @@ export default function Navbar({ activeTab, setActiveTab, walletState, connectWa
               <span>{getNetworkName(walletState.chainId)}</span>
             </div>
 
-            {/* Wallet Button */}
-            {walletState.isConnected ? (
-              <div className="flex items-center gap-2 bg-white/70 backdrop-blur-sm border border-[#ED7B46]/25 rounded-xl p-1 pr-3">
-                <div className="w-7 h-7 rounded-lg bg-brand-primary/10 text-brand-700 flex items-center justify-center font-mono font-bold text-xs">
-                  0x
-                </div>
-                <div className="text-left">
-                  <div className="text-xs font-mono font-semibold text-slate-900">
-                    {walletState.address.substring(0, 6)}...{walletState.address.substring(walletState.address.length - 4)}
+            {/* Wallet Button (Desktop only: md:flex, hidden on mobile) */}
+            <div className="hidden md:flex items-center">
+              {walletState.isConnected ? (
+                <div className="flex items-center gap-2 bg-white/70 backdrop-blur-sm border border-[#ED7B46]/25 rounded-xl p-1 pr-3">
+                  <div className="w-7 h-7 rounded-lg bg-brand-primary/10 text-brand-700 flex items-center justify-center font-mono font-bold text-xs">
+                    0x
                   </div>
+                  <div className="text-left">
+                    <div className="text-xs font-mono font-semibold text-slate-900">
+                      {walletState.address.substring(0, 6)}...{walletState.address.substring(walletState.address.length - 4)}
+                    </div>
+                  </div>
+                  <button 
+                    onClick={disconnectWallet}
+                    title="Disconnect wallet"
+                    className="ml-1 text-slate-400 hover:text-slate-600 text-[10px] font-mono"
+                  >
+                    Disconnect
+                  </button>
                 </div>
-                <button 
-                  onClick={disconnectWallet}
-                  title="Disconnect wallet"
-                  className="ml-1 text-slate-400 hover:text-slate-600 text-[10px] font-mono"
+              ) : (
+                <button
+                  onClick={connectWallet}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-[#ED7B46] to-[#EA580C] hover:from-[#E06336] hover:to-[#C2410C] text-white text-xs font-semibold shadow-sm transition-all transform active:scale-95"
                 >
-                  Disconnect
+                  <Wallet className="w-3.5 h-3.5" />
+                  <span>Connect Wallet</span>
                 </button>
-              </div>
-            ) : (
-              <button
-                onClick={connectWallet}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-brand-primary hover:bg-brand-600 text-white text-xs font-semibold shadow-sm transition-all transform active:scale-95"
-              >
-                <Wallet className="w-3.5 h-3.5" />
-                <span>Connect Wallet</span>
-              </button>
-            )}
+              )}
+            </div>
 
-            {/* Mobile Hamburger Button */}
+            {/* Mobile Hamburger Button with Orange to Dark Orange Gradient */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 rounded-lg text-slate-700 hover:text-slate-900 hover:bg-white/50 transition-colors"
+              className="md:hidden p-2 rounded-xl bg-gradient-to-r from-[#ED7B46] to-[#EA580C] hover:from-[#E06336] hover:to-[#C2410C] text-white shadow-sm shadow-orange-500/25 active:scale-95 transition-all flex items-center justify-center"
               aria-label="Menu"
             >
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -169,34 +177,95 @@ export default function Navbar({ activeTab, setActiveTab, walletState, connectWa
         </div>
       </div>
 
-      {/* Mobile Menu Dropdown */}
-      {mobileMenuOpen && (
-        <div className="md:hidden border-t border-[#ED7B46]/20 bg-white/95 backdrop-blur-md px-4 pt-3 pb-5 space-y-1.5 shadow-lg animate-in slide-in-from-top-2 duration-200">
-          <div className="px-2 py-1.5 mb-2 flex items-center justify-between text-xs font-mono text-slate-500 bg-slate-50 rounded-lg">
-            <span>Network:</span>
-            <span className="font-semibold text-emerald-700 flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-              {getNetworkName(walletState.chainId)} ({walletState.chainId || 968})
-            </span>
-          </div>
+      {/* Render Mobile Popup & Full Background Blur using createPortal directly into document.body */}
+      {mounted && mobileMenuOpen && typeof document !== 'undefined' && createPortal(
+        <>
+          {/* Mobile Backdrop Overlay (Heavy Full-Screen Page Blur behind header) */}
+          <div
+            onClick={() => setMobileMenuOpen(false)}
+            className="fixed inset-0 z-40 bg-white/60 md:hidden animate-in fade-in duration-200"
+            style={{
+              backdropFilter: 'blur(16px)',
+              WebkitBackdropFilter: 'blur(16px)',
+            }}
+            aria-hidden="true"
+          />
 
-          {navItems.map((item) => {
-            const isActive = activeTab === item.id;
-            return (
-              <button
-                key={item.id}
-                onClick={() => handleNavClick(item.id)}
-                className={`w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all ${
-                  isActive
-                    ? 'bg-gradient-to-r from-[#ED7B46] to-[#EA580C] text-white shadow-sm'
-                    : 'text-slate-700 hover:bg-slate-50'
-                }`}
-              >
-                <span>{item.label}</span>
-              </button>
-            );
-          })}
-        </div>
+          {/* Floating Popup Menu on the Right Side Only */}
+          <div
+            className="fixed right-4 top-[74px] z-50 w-64 max-w-[calc(100vw-2rem)] bg-white rounded-3xl p-4 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.25)] border border-slate-200/90 space-y-3 animate-in zoom-in-95 fade-in slide-in-from-top-2 duration-200 md:hidden select-none"
+          >
+            {/* Mobile Wallet Section (Connect / Disconnect) */}
+            <div className="pb-1 border-b border-slate-100">
+              {walletState.isConnected ? (
+                <div className="bg-slate-50 border border-slate-200 rounded-xl p-2.5 flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className="w-7 h-7 rounded-lg bg-brand-primary/10 text-brand-700 flex items-center justify-center font-mono font-bold text-xs shrink-0">
+                      0x
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[9px] text-slate-400 font-mono">Connected</p>
+                      <p className="text-[11px] font-mono font-semibold text-slate-900 truncate">
+                        {walletState.address.substring(0, 6)}...{walletState.address.substring(walletState.address.length - 4)}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => {
+                      disconnectWallet();
+                      setMobileMenuOpen(false);
+                    }}
+                    className="px-2 py-1 rounded-md bg-rose-50 hover:bg-rose-100 text-rose-600 text-[10px] font-mono font-semibold border border-rose-200 transition-colors shrink-0"
+                  >
+                    Exit
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => {
+                    connectWallet();
+                    setMobileMenuOpen(false);
+                  }}
+                  className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-gradient-to-r from-[#ED7B46] to-[#EA580C] hover:from-[#E06336] hover:to-[#C2410C] text-white text-xs font-semibold shadow-sm shadow-orange-500/25 transition-all active:scale-98"
+                >
+                  <Wallet className="w-3.5 h-3.5" />
+                  <span>Connect Wallet</span>
+                </button>
+              )}
+            </div>
+
+            {/* Navigation Links */}
+            <div className="space-y-1 py-0.5">
+              {navItems.map((item) => {
+                const isActive = activeTab === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => handleNavClick(item.id)}
+                    className={`w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all flex items-center justify-between ${
+                      isActive
+                        ? 'bg-gradient-to-r from-[#ED7B46] to-[#EA580C] text-white shadow-sm shadow-orange-500/20'
+                        : 'text-slate-700 hover:text-[#ED7B46] hover:bg-orange-50/60'
+                    }`}
+                  >
+                    <span>{item.label}</span>
+                    {isActive && <span className="w-1.5 h-1.5 rounded-full bg-white"></span>}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Network Indicator Pill */}
+            <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[10px] font-mono text-slate-500 px-1">
+              <span>Network:</span>
+              <span className="font-semibold text-emerald-700 flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                {getNetworkName(walletState.chainId)}
+              </span>
+            </div>
+          </div>
+        </>,
+        document.body
       )}
     </header>
   );

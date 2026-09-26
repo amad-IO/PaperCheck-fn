@@ -139,9 +139,10 @@ export default function CekNaskahView({ showToast, walletState }) {
       
       {/* Hero Section */}
       <section className="text-center space-y-3 pt-4 sm:pt-6">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-xs font-mono text-slate-700">
-          <Shield className="w-3.5 h-3.5 text-brand-primary" />
-          <span>Serverless Client-Side Originality Verification</span>
+        <div className="inline-flex items-center justify-center gap-2 px-3.5 py-1.5 rounded-xl sm:rounded-full bg-slate-100 border border-slate-200 text-[11px] sm:text-xs font-mono text-slate-700 text-center max-w-full">
+          <Shield className="w-3.5 h-3.5 text-brand-primary shrink-0" />
+          <span className="hidden sm:inline">Serverless Client-Side Originality Verification</span>
+          <span className="sm:hidden">Client-Side Originality Verification</span>
         </div>
         <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-slate-900 leading-tight">
           Verify Academic Paper Integrity

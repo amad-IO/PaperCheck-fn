@@ -154,9 +154,10 @@ export default function DashboardPanitiaView({ walletState, connectWallet, showT
       
       {/* Header */}
       <section className="text-center space-y-3 pt-4 sm:pt-6">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-xs font-mono text-slate-700">
-          <ShieldCheck className="w-3.5 h-3.5 text-brand-primary" />
-          <span>Institutional Multi-Sig Jury & Verifiable Award Attestation</span>
+        <div className="inline-flex items-center justify-center gap-2 px-3.5 py-1.5 rounded-xl sm:rounded-full bg-slate-100 border border-slate-200 text-[11px] sm:text-xs font-mono text-slate-700 text-center max-w-full">
+          <ShieldCheck className="w-3.5 h-3.5 text-brand-primary shrink-0" />
+          <span className="hidden sm:inline">Institutional Multi-Sig Jury & Verifiable Award Attestation</span>
+          <span className="sm:hidden">Multi-Sig Jury & Verifiable Award Attestation</span>
         </div>
         <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-slate-900">
           Competition Committee Dashboard
@@ -219,34 +220,34 @@ export default function DashboardPanitiaView({ walletState, connectWallet, showT
       <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-card space-y-6 transition-colors duration-200">
         
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
-          <div className="flex flex-wrap items-center gap-1.5 p-1 rounded-full bg-slate-100/90 border border-slate-200/80">
+          <div className="grid grid-cols-1 sm:flex sm:flex-wrap items-center gap-1.5 p-1 rounded-2xl sm:rounded-full bg-slate-100/90 border border-slate-200/80 w-full sm:w-auto">
             <button
               onClick={() => setPanitiaTab('batch')}
-              className={`px-4 py-2 rounded-full text-xs font-semibold transition-all ${
- panitiaTab === 'batch' 
- ? 'bg-gradient-to-r from-[#ED7B46] to-[#EA580C] text-white shadow-sm shadow-orange-500/25' 
- : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
- }`}
+              className={`px-3 sm:px-4 py-2 rounded-xl sm:rounded-full text-xs font-semibold text-center transition-all ${
+                panitiaTab === 'batch' 
+                  ? 'bg-gradient-to-r from-[#ED7B46] to-[#EA580C] text-white shadow-sm shadow-orange-500/25' 
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+              }`}
             >
               Record Batch Results
             </button>
             <button
               onClick={() => setPanitiaTab('buat')}
-              className={`px-4 py-2 rounded-full text-xs font-semibold transition-all ${
- panitiaTab === 'buat' 
- ? 'bg-gradient-to-r from-[#ED7B46] to-[#EA580C] text-white shadow-sm shadow-orange-500/25' 
- : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
- }`}
+              className={`px-3 sm:px-4 py-2 rounded-xl sm:rounded-full text-xs font-semibold text-center transition-all ${
+                panitiaTab === 'buat' 
+                  ? 'bg-gradient-to-r from-[#ED7B46] to-[#EA580C] text-white shadow-sm shadow-orange-500/25' 
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+              }`}
             >
               Create Competition
             </button>
             <button
               onClick={() => setPanitiaTab('verifikasi')}
-              className={`px-4 py-2 rounded-full text-xs font-semibold transition-all ${
- panitiaTab === 'verifikasi' 
- ? 'bg-gradient-to-r from-[#ED7B46] to-[#EA580C] text-white shadow-sm shadow-orange-500/25' 
- : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
- }`}
+              className={`px-3 sm:px-4 py-2 rounded-xl sm:rounded-full text-xs font-semibold text-center transition-all ${
+                panitiaTab === 'verifikasi' 
+                  ? 'bg-gradient-to-r from-[#ED7B46] to-[#EA580C] text-white shadow-sm shadow-orange-500/25' 
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+              }`}
             >
               Domain Verification (DNS)
             </button>

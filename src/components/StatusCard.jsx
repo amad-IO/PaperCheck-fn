@@ -14,25 +14,25 @@ export default function StatusCard({ result, onViewExplorer }) {
       
       {/* 1. STATUS CLEAN */}
       {status === 'clean' && (
-        <div className="bg-emerald-50/90 border-2 border-emerald-300/80 rounded-2xl p-6 sm:p-7 shadow-sm">
+        <div className="bg-emerald-50/90 border-2 border-emerald-300/80 rounded-2xl p-4 sm:p-7 shadow-sm">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-emerald-200/60">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl bg-emerald-100 border border-emerald-200 flex items-center justify-center text-emerald-700 shrink-0">
-                <CheckCircle className="w-6 h-6" />
+            <div className="flex items-start sm:items-center gap-3">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-emerald-100 border border-emerald-200 flex items-center justify-center text-emerald-700 shrink-0 mt-0.5 sm:mt-0">
+                <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6" />
               </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h3 className="text-lg font-bold text-emerald-950">Clean Paper</h3>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-200 text-emerald-900 uppercase">
+              <div className="space-y-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h3 className="text-base sm:text-lg font-bold text-emerald-950 leading-snug">Clean Paper</h3>
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-200 text-emerald-900 uppercase whitespace-nowrap shrink-0">
                     No Prior Records
                   </span>
                 </div>
-                <p className="text-xs sm:text-sm text-emerald-800 mt-0.5">
+                <p className="text-xs sm:text-sm text-emerald-800 leading-relaxed">
                   This paper fingerprint has never been recorded in any competition registry.
                 </p>
               </div>
             </div>
-            <div className="text-right font-mono text-xs text-emerald-700 bg-emerald-100/70 px-3 py-1.5 rounded-xl border border-emerald-200 self-stretch sm:self-auto text-center">
+            <div className="font-mono text-xs text-emerald-700 bg-emerald-100/70 px-3 py-1.5 rounded-xl border border-emerald-200 self-stretch sm:self-auto text-center shrink-0">
               Similarity Score: <strong className="text-emerald-900">{similarityPercentage || 0}%</strong>
             </div>
           </div>
@@ -40,7 +40,7 @@ export default function StatusCard({ result, onViewExplorer }) {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-4 text-xs font-mono text-emerald-900">
             <div className="p-3 bg-white/70 rounded-xl border border-emerald-200/60">
               <div className="text-[10px] text-emerald-700 uppercase font-semibold">SHA-256 Fingerprint</div>
-              <div className="truncate font-semibold mt-0.5 text-slate-800">{sha256}</div>
+              <div className="truncate font-semibold mt-0.5 text-slate-800 break-all">{sha256}</div>
             </div>
             <div className="p-3 bg-white/70 rounded-xl border border-emerald-200/60">
               <div className="text-[10px] text-emerald-700 uppercase font-semibold">SimHash 64-Bit</div>
@@ -52,20 +52,20 @@ export default function StatusCard({ result, onViewExplorer }) {
 
       {/* 2. STATUS PARTICIPATED */}
       {status === 'participated' && (
-        <div className="bg-amber-50/90 border-2 border-amber-300/80 rounded-2xl p-6 sm:p-7 shadow-sm">
+        <div className="bg-amber-50/90 border-2 border-amber-300/80 rounded-2xl p-4 sm:p-7 shadow-sm">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-amber-200/60">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl bg-amber-100 border border-amber-200 flex items-center justify-center text-amber-700 shrink-0">
-                <AlertTriangle className="w-6 h-6" />
+            <div className="flex items-start sm:items-center gap-3">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-amber-100 border border-amber-200 flex items-center justify-center text-amber-700 shrink-0 mt-0.5 sm:mt-0">
+                <AlertTriangle className="w-5 h-5 sm:w-6 sm:h-6" />
               </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h3 className="text-lg font-bold text-amber-950">Prior History Detected (Identical)</h3>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-200 text-amber-900 uppercase">
+              <div className="space-y-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h3 className="text-base sm:text-lg font-bold text-amber-950 leading-snug">Prior History Detected (Identical)</h3>
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-200 text-amber-900 uppercase whitespace-nowrap shrink-0">
                     Exact Match 100%
                   </span>
                 </div>
-                <p className="text-xs sm:text-sm text-amber-800 mt-0.5">
+                <p className="text-xs sm:text-sm text-amber-800 leading-relaxed">
                   This paper shares an identical cryptographic fingerprint with an entry previously recorded in a competition.
                 </p>
               </div>
@@ -77,23 +77,23 @@ export default function StatusCard({ result, onViewExplorer }) {
             <div className="text-xs font-semibold uppercase font-mono text-amber-900 tracking-wider">
               Competition Track Record:
             </div>
-            <div className="overflow-x-auto bg-white/80 rounded-xl border border-amber-200 shadow-sm">
-              <table className="w-full text-left text-xs">
+            <div className="overflow-x-auto bg-white/80 rounded-xl border border-amber-200 shadow-sm w-full">
+              <table className="w-full text-left text-xs min-w-[500px]">
                 <thead className="bg-amber-100/60 border-b border-amber-200 text-amber-950 font-semibold font-mono">
                   <tr>
-                    <th className="py-2.5 px-3">Competition</th>
-                    <th className="py-2.5 px-3">Year</th>
-                    <th className="py-2.5 px-3">Status</th>
-                    <th className="py-2.5 px-3">Recorder & Credibility</th>
+                    <th className="py-2.5 px-3 whitespace-nowrap">Competition</th>
+                    <th className="py-2.5 px-3 whitespace-nowrap">Year</th>
+                    <th className="py-2.5 px-3 whitespace-nowrap">Status</th>
+                    <th className="py-2.5 px-3 whitespace-nowrap">Recorder & Credibility</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-amber-100 text-slate-700">
                   {participations && participations.map((part) => (
                     <tr key={part.id} className="hover:bg-amber-50/50 transition-colors">
-                      <td className="py-2.5 px-3 font-medium text-slate-900">{part.competitionName}</td>
-                      <td className="py-2.5 px-3 font-mono">{part.year}</td>
-                      <td className="py-2.5 px-3">
-                        <span className={`px-2 py-0.5 rounded-full font-semibold font-mono text-[10px] ${
+                      <td className="py-2.5 px-3 font-medium text-slate-900 whitespace-nowrap">{part.competitionName}</td>
+                      <td className="py-2.5 px-3 font-mono whitespace-nowrap">{part.year}</td>
+                      <td className="py-2.5 px-3 whitespace-nowrap">
+                        <span className={`px-2 py-0.5 rounded-full font-semibold font-mono text-[10px] whitespace-nowrap ${
                           part.status === 'Winner' || part.status === 'Juara'
                             ? 'bg-amber-200 text-amber-900 border border-amber-300'
                             : part.status === 'Finalist' || part.status === 'Finalis'
@@ -103,7 +103,7 @@ export default function StatusCard({ result, onViewExplorer }) {
                           {part.status === 'Juara' ? 'Winner' : (part.status === 'Finalis' ? 'Finalist' : part.status)}
                         </span>
                       </td>
-                      <td className="py-2.5 px-3">
+                      <td className="py-2.5 px-3 whitespace-nowrap">
                         <div className="flex flex-col gap-1">
                           <span className="text-[11px] font-medium text-slate-900">{part.recorderName}</span>
                           <BadgePill badge={part.badge} domain={part.domain} />
@@ -120,20 +120,20 @@ export default function StatusCard({ result, onViewExplorer }) {
 
       {/* 3. STATUS SIMILAR */}
       {status === 'similar' && (
-        <div className="bg-rose-50/90 border-2 border-rose-300/80 rounded-2xl p-6 sm:p-7 shadow-sm">
+        <div className="bg-rose-50/90 border-2 border-rose-300/80 rounded-2xl p-4 sm:p-7 shadow-sm">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-rose-200/60">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl bg-rose-100 border border-rose-200 flex items-center justify-center text-rose-700 shrink-0">
-                <AlertOctagon className="w-6 h-6" />
+            <div className="flex items-start sm:items-center gap-3">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-rose-100 border border-rose-200 flex items-center justify-center text-rose-700 shrink-0 mt-0.5 sm:mt-0">
+                <AlertOctagon className="w-5 h-5 sm:w-6 sm:h-6" />
               </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h3 className="text-lg font-bold text-rose-950">Substantial Similarity Detected</h3>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-rose-200 text-rose-900 uppercase">
+              <div className="space-y-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h3 className="text-base sm:text-lg font-bold text-rose-950 leading-snug">Substantial Similarity Detected</h3>
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-rose-200 text-rose-900 uppercase whitespace-nowrap shrink-0">
                     SimHash Match: {similarityPercentage}%
                   </span>
                 </div>
-                <p className="text-xs sm:text-sm text-rose-800 mt-0.5">
+                <p className="text-xs sm:text-sm text-rose-800 leading-relaxed">
                   The document has a substantial content similarity of <strong className="underline decoration-rose-500">{similarityPercentage}%</strong> with an academic paper already registered.
                 </p>
               </div>

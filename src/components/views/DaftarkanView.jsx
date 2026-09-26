@@ -155,9 +155,10 @@ export default function DaftarkanView({ walletState, connectWallet, showToast, s
 
       {/* Header */}
       <section className="text-center space-y-3 pt-4 sm:pt-6">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-xs font-mono text-slate-700">
-          <Lock className="w-3.5 h-3.5 text-brand-primary" />
-          <span>Zero-Knowledge Proof-of-Existence Timestamp</span>
+        <div className="inline-flex items-center justify-center gap-2 px-3.5 py-1.5 rounded-xl sm:rounded-full bg-slate-100 border border-slate-200 text-[11px] sm:text-xs font-mono text-slate-700 text-center max-w-full">
+          <Lock className="w-3.5 h-3.5 text-brand-primary shrink-0" />
+          <span className="hidden sm:inline">Zero-Knowledge Proof-of-Existence Timestamp</span>
+          <span className="sm:hidden">Proof-of-Existence Timestamp</span>
         </div>
         <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-slate-900">
           Register Scientific Paper
@@ -187,19 +188,20 @@ export default function DaftarkanView({ walletState, connectWallet, showToast, s
 
       {/* Stepper Progress Indicator */}
       {currentStep <= 4 && (
-        <div className="grid grid-cols-4 gap-2">
+        <div className="grid grid-cols-4 gap-1.5 sm:gap-2 w-full">
           {[
-            { step: 1, title: 'Author Info' },
-            { step: 2, title: 'Details' },
-            { step: 3, title: 'Fingerprint' },
-            { step: 4, title: 'Review & Sign' }
+            { step: 1, title: 'Author Info', short: 'Author' },
+            { step: 2, title: 'Details', short: 'Details' },
+            { step: 3, title: 'Fingerprint', short: 'Hash' },
+            { step: 4, title: 'Review & Sign', short: 'Sign' }
           ].map((item) => (
-            <div key={item.step} className="text-center">
+            <div key={item.step} className="text-center min-w-0">
               <div className={`h-1.5 rounded-full mb-1.5 transition-all ${currentStep >= item.step ? 'bg-brand-primary' : 'bg-slate-200'
                 }`}></div>
-              <span className={`text-[11px] font-mono font-medium ${currentStep >= item.step ? 'text-brand-700' : 'text-slate-400'
+              <span className={`text-[10px] sm:text-[11px] font-mono font-medium truncate block ${currentStep >= item.step ? 'text-brand-700 font-semibold' : 'text-slate-400'
                 }`}>
-                {item.step}. {item.title}
+                <span className="hidden sm:inline">{item.step}. {item.title}</span>
+                <span className="sm:hidden">{item.step}. {item.short}</span>
               </span>
             </div>
           ))}
@@ -207,7 +209,7 @@ export default function DaftarkanView({ walletState, connectWallet, showToast, s
       )}
 
       {/* Form Container */}
-      <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-card">
+      <div className="bg-white border border-slate-200 rounded-3xl p-4 sm:p-8 shadow-card w-full max-w-full overflow-hidden">
 
         {/* STEP 1: AUTHOR INFO */}
         {currentStep === 1 && (

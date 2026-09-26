@@ -197,28 +197,28 @@ export default function Home() {
   };
 
   // Predefined slot styles for the 5-card fanned carousel
-  // All cards have exact identical dimensions: w-[270px] sm:w-[290px] h-[340px] rounded-[26px]
+  // All cards have exact identical dimensions: w-[260px] sm:w-[290px] h-[340px] rounded-[26px]
   const getSlotClass = (cardIndex) => {
     const slot = (cardIndex - centerIndex + 2 + 5) % 5;
 
     switch (slot) {
       case 0: // Slot 0: Far Left
-        return 'transform -translate-x-[55px] sm:-translate-x-[210px] md:-translate-x-[280px] translate-y-2 -rotate-[8deg] scale-[0.92] z-0 opacity-80 sm:opacity-90';
+        return 'transform -translate-x-[42px] sm:-translate-x-[210px] md:-translate-x-[280px] translate-y-2 -rotate-[8deg] scale-[0.88] sm:scale-[0.92] z-0 opacity-70 sm:opacity-90';
       case 1: // Slot 1: Mid Left
-        return 'transform -translate-x-[28px] sm:-translate-x-[105px] md:-translate-x-[140px] translate-y-1 -rotate-[4deg] scale-[0.96] z-10 opacity-90 sm:opacity-95';
+        return 'transform -translate-x-[22px] sm:-translate-x-[105px] md:-translate-x-[140px] translate-y-1 -rotate-[4deg] scale-[0.94] sm:scale-[0.96] z-10 opacity-85 sm:opacity-95';
       case 2: // Slot 2: Center Front Primary
         return 'transform translate-x-0 translate-y-0 rotate-0 scale-100 z-20 opacity-100 shadow-2xl';
       case 3: // Slot 3: Mid Right
-        return 'transform translate-x-[28px] sm:translate-x-[105px] md:translate-x-[140px] translate-y-1 rotate-[4deg] scale-[0.96] z-10 opacity-90 sm:opacity-95';
+        return 'transform translate-x-[22px] sm:translate-x-[105px] md:translate-x-[140px] translate-y-1 rotate-[4deg] scale-[0.94] sm:scale-[0.96] z-10 opacity-85 sm:opacity-95';
       case 4: // Slot 4: Far Right
-        return 'transform translate-x-[55px] sm:translate-x-[210px] md:translate-x-[280px] translate-y-2 rotate-[8deg] scale-[0.92] z-0 opacity-80 sm:opacity-90';
+        return 'transform translate-x-[42px] sm:translate-x-[210px] md:translate-x-[280px] translate-y-2 rotate-[8deg] scale-[0.88] sm:scale-[0.92] z-0 opacity-70 sm:opacity-90';
       default:
         return '';
     }
   };
 
   return (
-    <div className="flex-1 flex flex-col min-h-screen">
+    <div className="flex-1 flex flex-col min-h-screen w-full max-w-full overflow-x-hidden relative pt-16">
 
       {/* Top Navigation Bar */}
       <Navbar
@@ -230,10 +230,10 @@ export default function Home() {
       />
 
       {/* Hero & Fanned Stacked Cards Showcase (Auto-Rotating every 2s, identical card sizes) */}
-      <section className="w-full min-h-[calc(100vh-4rem)] flex flex-col justify-center items-center py-5 px-4 sm:px-6 select-none overflow-hidden">
+      <section className="w-full max-w-full min-h-[calc(100vh-4rem)] flex flex-col justify-center items-center py-5 px-3 sm:px-6 select-none overflow-x-hidden relative">
 
         {/* Title & Subtitle */}
-        <div className="text-center max-w-2xl mx-auto mb-5">
+        <div className="text-center max-w-2xl mx-auto mb-5 px-2">
           <h1 className="text-4xl sm:text-5xl lg:text-[54px] font-medium text-slate-900 tracking-tight leading-[1.08] mb-2.5">
             System Metriqs
           </h1>
@@ -272,18 +272,18 @@ export default function Home() {
         </div>
 
         {/* FANNED STACKED CARDS CONTAINER
-            Every card has uniform compact dimensions: w-[270px] sm:w-[290px] h-[340px] rounded-[26px]
+            Every card has uniform compact dimensions: w-[260px] sm:w-[290px] h-[340px] rounded-[26px]
             Cycles automatically every 2 seconds with 700ms smooth transitions */}
         <div
           onMouseEnter={() => setIsPaused(true)}
           onMouseLeave={() => setIsPaused(false)}
-          className="relative w-full max-w-[980px] h-[360px] flex items-center justify-center cursor-pointer"
+          className="relative w-full max-w-[980px] h-[360px] flex items-center justify-center cursor-pointer overflow-hidden sm:overflow-visible"
         >
 
           {/* CARD 0: Timeline Audit (Peach #F5A87B) */}
           <div
             onClick={() => setCenterIndex(0)}
-            className={`absolute w-[270px] sm:w-[290px] h-[340px] rounded-[26px] bg-[#F5A87B] p-5 text-white shadow-xl flex flex-col justify-between transition-all duration-700 ease-in-out ${getSlotClass(0)}`}
+            className={`absolute w-[260px] sm:w-[290px] h-[340px] rounded-[26px] bg-[#F5A87B] p-5 text-white shadow-xl flex flex-col justify-between transition-all duration-700 ease-in-out ${getSlotClass(0)}`}
           >
             <div>
               <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center mb-3">
@@ -317,7 +317,7 @@ export default function Home() {
           {/* CARD 1: Paraphrase Engine (Terracotta #E06336) */}
           <div
             onClick={() => setCenterIndex(1)}
-            className={`absolute w-[270px] sm:w-[290px] h-[340px] rounded-[26px] bg-[#E06336] p-5 text-white shadow-xl flex flex-col justify-between transition-all duration-700 ease-in-out ${getSlotClass(1)}`}
+            className={`absolute w-[260px] sm:w-[290px] h-[340px] rounded-[26px] bg-[#E06336] p-5 text-white shadow-xl flex flex-col justify-between transition-all duration-700 ease-in-out ${getSlotClass(1)}`}
           >
             <div>
               <h3 className="text-xl font-bold mb-1.5">Paraphrase Engine</h3>
@@ -363,7 +363,7 @@ export default function Home() {
           {/* CARD 2: Manuscript Verification (Center Frosted Glass Acrylic) */}
           <div
             onClick={() => setCenterIndex(2)}
-            className={`absolute w-[270px] sm:w-[290px] h-[340px] rounded-[26px] acrylic-card p-5 shadow-2xl flex flex-col justify-between transition-all duration-700 ease-in-out ${getSlotClass(2)}`}
+            className={`absolute w-[260px] sm:w-[290px] h-[340px] rounded-[26px] acrylic-card p-5 shadow-2xl flex flex-col justify-between transition-all duration-700 ease-in-out ${getSlotClass(2)}`}
           >
             <div>
               {/* Top Icons Row */}
@@ -473,7 +473,7 @@ export default function Home() {
           {/* CARD 3: Integrity Shield (Slate Navy #3D4A60) */}
           <div
             onClick={() => setCenterIndex(3)}
-            className={`absolute w-[270px] sm:w-[290px] h-[340px] rounded-[26px] bg-[#3D4A60] p-5 text-white shadow-xl flex flex-col justify-between transition-all duration-700 ease-in-out ${getSlotClass(3)}`}
+            className={`absolute w-[260px] sm:w-[290px] h-[340px] rounded-[26px] bg-[#3D4A60] p-5 text-white shadow-xl flex flex-col justify-between transition-all duration-700 ease-in-out ${getSlotClass(3)}`}
           >
             <div>
               <div className="flex items-center justify-between mb-2">
@@ -509,7 +509,7 @@ export default function Home() {
           {/* CARD 4: Registry (Ice Blue #DCE5EC) */}
           <div
             onClick={() => setCenterIndex(4)}
-            className={`absolute w-[270px] sm:w-[290px] h-[340px] rounded-[26px] bg-[#DCE5EC] p-5 text-[#2D3748] shadow-xl flex flex-col justify-between transition-all duration-700 ease-in-out ${getSlotClass(4)}`}
+            className={`absolute w-[260px] sm:w-[290px] h-[340px] rounded-[26px] bg-[#DCE5EC] p-5 text-[#2D3748] shadow-xl flex flex-col justify-between transition-all duration-700 ease-in-out ${getSlotClass(4)}`}
           >
             <div>
               <div className="flex items-center justify-end mb-2">
@@ -561,13 +561,13 @@ export default function Home() {
       </section>
 
       {/* WORKSPACE SECTION */}
-      <section ref={workspaceRef} className="scroll-mt-16 w-full min-h-[calc(100vh-4rem)] bg-white border-t border-slate-200 py-12 px-4 sm:px-6 lg:px-8 shadow-inner overflow-hidden transition-colors duration-200">
-        <div className="max-w-5xl mx-auto overflow-hidden">
+      <section ref={workspaceRef} className="scroll-mt-16 w-full max-w-full min-h-[calc(100vh-4rem)] bg-white border-t border-slate-200 py-10 sm:py-12 px-3 sm:px-6 lg:px-8 shadow-inner overflow-x-hidden transition-colors duration-200">
+        <div className="max-w-5xl mx-auto w-full overflow-x-hidden">
 
           {/* ACTIVE WORKSPACE VIEW WITH DIRECTIONAL ANIMATION */}
           <div
             key={activeTab}
-            className={`w-full ${slideDirection === 'forward' ? 'page-slide-forward' : 'page-slide-backward'}`}
+            className={`w-full overflow-x-hidden ${slideDirection === 'forward' ? 'page-slide-forward' : 'page-slide-backward'}`}
           >
             {activeTab === 'cek' && (
               <CekNaskahView showToast={showToast} walletState={walletState} />
@@ -604,7 +604,7 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="w-full border-t border-slate-200 bg-white py-6 px-4 transition-colors duration-200">
+      <footer className="w-full max-w-full border-t border-slate-200 bg-white py-6 px-4 transition-colors duration-200 overflow-x-hidden">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 font-mono gap-3">
           <div className="flex items-center gap-2">
             <img src="/logo.svg" alt="PaperCheck" className="w-4 h-4 object-contain" />
@@ -622,7 +622,7 @@ export default function Home() {
       {toast && (
         <div
           key={toast.id || toast.title}
-          className="fixed bottom-6 right-6 z-50 flex items-start gap-3 w-auto max-w-sm sm:max-w-md bg-white/95 backdrop-blur-xl rounded-2xl px-4 py-3.5 border border-slate-200/90 shadow-[0_12px_36px_-6px_rgba(0,0,0,0.12),0_4px_12px_-2px_rgba(0,0,0,0.06)] toast-animate-in select-none"
+          className="fixed bottom-4 sm:bottom-6 right-3 sm:right-6 left-3 sm:left-auto z-50 flex items-start gap-3 w-auto max-w-sm sm:max-w-md bg-white/95 backdrop-blur-xl rounded-2xl px-4 py-3.5 border border-slate-200/90 shadow-[0_12px_36px_-6px_rgba(0,0,0,0.12),0_4px_12px_-2px_rgba(0,0,0,0.06)] toast-animate-in select-none"
         >
           {/* Status Icon */}
           <div className="shrink-0 mt-0.5">
