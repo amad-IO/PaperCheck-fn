@@ -169,7 +169,7 @@ export default function StatusCard({ result, onViewExplorer }) {
         <p className="text-[11px] text-slate-500 italic">
           {result.manuscript?.txHash 
             ? '*This manuscript is verified on-chain with immutable transaction timestamp.' 
-            : '*Clean paper is not yet registered on-chain. Inspect PaperCheck contract on BohrScan.'}
+            : '*Clean paper is not yet registered on-chain. Inspect PaperCheck contract on Scan.'}
         </p>
         {onViewExplorer && (
           <div className="flex items-center gap-2 w-full sm:w-auto">

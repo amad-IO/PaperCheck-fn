@@ -62,7 +62,7 @@ export default function DetailNaskahView({ walletState, showToast, setActiveTab 
     try {
       const chainManuscripts = await fetchManuscriptsFromChain({
         contractAddress: CONTRACT_ADDRESS,
-        chainId: walletState?.chainId || 968
+        chainId: walletState?.chainId || 677
       });
 
       if (chainManuscripts && chainManuscripts.length > 0) {
@@ -505,8 +505,8 @@ export default function DetailNaskahView({ walletState, showToast, setActiveTab 
                 </div>
                 <a
                   href={currentManuscript.txHash 
-                    ? getExplorerTxUrl(currentManuscript.txHash, walletState?.chainId || 968)
-                    : getExplorerAddressUrl(CONTRACT_ADDRESS, walletState?.chainId || 968)}
+                    ? getExplorerTxUrl(currentManuscript.txHash, walletState?.chainId || 677)
+                    : getExplorerAddressUrl(CONTRACT_ADDRESS, walletState?.chainId || 677)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-emerald-300 text-emerald-800 hover:bg-emerald-50 text-xs font-semibold shadow-sm transition-all"
@@ -572,7 +572,7 @@ export default function DetailNaskahView({ walletState, showToast, setActiveTab 
 
                     {currentManuscript.txHash ? (
                       <a
-                        href={getExplorerTxUrl(currentManuscript.txHash, walletState?.chainId || 968)}
+                        href={getExplorerTxUrl(currentManuscript.txHash, walletState?.chainId || 677)}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white border border-emerald-300 text-emerald-800 hover:bg-emerald-100 text-xs font-semibold shadow-sm transition-all"
@@ -582,7 +582,7 @@ export default function DetailNaskahView({ walletState, showToast, setActiveTab 
                       </a>
                     ) : (
                       <a
-                        href={getExplorerAddressUrl(CONTRACT_ADDRESS, walletState?.chainId || 968)}
+                        href={getExplorerAddressUrl(CONTRACT_ADDRESS, walletState?.chainId || 677)}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white border border-emerald-300 text-emerald-800 hover:bg-emerald-100 text-xs font-semibold shadow-sm transition-all"

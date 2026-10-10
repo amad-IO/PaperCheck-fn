@@ -212,7 +212,7 @@ export default function DashboardPanitiaView({ walletState, connectWallet, showT
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
             <span>Open Access: Anyone can test batch recording & competition registration on the smart contract.</span>
           </div>
-          <span className="font-sans text-[11px] text-amber-800/80 font-medium">Bohr Testnet Ready</span>
+          <span className="font-sans text-[11px] text-amber-800/80 font-medium">Mainnet Ready</span>
         </div>
       </div>
 

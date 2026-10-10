@@ -9,8 +9,8 @@ import DetailNaskahView from '../components/views/DetailNaskahView';
 import { extractTextFromFile } from '../lib/parser';
 import { generateDocumentFingerprint } from '../lib/hasher';
 import { checkManuscriptRegistry, SAMPLE_ABSTRACTS, registerManuscriptLocal } from '../lib/mockRegistry';
-import { getNetworkName } from '../lib/contract';
-import { Shield, CheckCircle, AlertCircle, Info, X, FileText, UploadCloud, Search, Award, Play, Pause } from 'lucide-react';
+import { getNetworkName, getRpcUrl, getExplorerAddressUrl, CONTRACT_ADDRESS } from '../lib/contract';
+import { Shield, CheckCircle, AlertCircle, Info, X, FileText, UploadCloud, Search, Award, Play, Pause, ExternalLink } from 'lucide-react';
 
 const TAB_ORDER = {
   'cek': 0,
@@ -27,7 +27,7 @@ export default function Home() {
   const [walletState, setWalletState] = useState({
     isConnected: false,
     address: '',
-    chainId: 968 // Bohr Testnet
+    chainId: 677 
   });
 
   // 3D Carousel Rotation State (2-second auto-rotation)
@@ -71,7 +71,7 @@ export default function Home() {
           setWalletState({
             isConnected: false,
             address: '',
-            chainId: 968
+            chainId: 677
           });
         } else {
           setWalletState(prev => ({
@@ -149,7 +149,7 @@ export default function Home() {
     setWalletState({
       isConnected: false,
       address: '',
-      chainId: 968
+      chainId: 677
     });
     showToast('Wallet Disconnected', 'Wallet connection disconnected.', 'info');
   };
@@ -503,7 +503,7 @@ export default function Home() {
                 Active Protocol
               </div>
             </div>
-            <div className="text-[10px] font-mono text-white/50 text-right">0x968...BOHR</div>
+            <div className="text-[10px] font-mono text-white/50 text-right">0x968...</div>
           </div>
 
           {/* CARD 4: Registry (Ice Blue #DCE5EC) */}
@@ -521,7 +521,7 @@ export default function Home() {
               </div>
               <h3 className="text-lg font-bold mb-1 text-slate-800">Registry</h3>
               <p className="text-slate-600 text-xs leading-relaxed mb-3 line-clamp-2 font-normal">
-                Immutable cryptographic fingerprints on Bohr Network ledger.
+                Immutable cryptographic fingerprints on Network ledger.
               </p>
 
               <div className="space-y-1.5">
@@ -608,10 +608,29 @@ export default function Home() {
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 font-mono gap-3">
           <div className="flex items-center gap-2">
             <img src="/logo.svg" alt="PaperCheck" className="w-4 h-4 object-contain" />
-            <span>PaperCheck Protocol • Decentralized Academic Manuscript Integrity</span>
+            <a
+              href={`https://scan.botchain.ai/address/${CONTRACT_ADDRESS}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-[#ED7B46] transition-colors hover:underline underline-offset-2 font-medium"
+              title={`Smart Contract (${CONTRACT_ADDRESS}): https://scan.botchain.ai/address/${CONTRACT_ADDRESS}`}
+            >
+              PaperCheck Protocol
+            </a>
+            <span>•</span>
+            <span>Decentralized Academic Manuscript Integrity</span>
           </div>
           <div className="flex items-center gap-4 text-[11px]">
-            <span>{getNetworkName(walletState.chainId)}</span>
+            <a
+              href={`https://scan.botchain.ai/address/${CONTRACT_ADDRESS}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-slate-500 hover:text-[#ED7B46] transition-colors group cursor-pointer"
+              title={`Buka Contract di Explorer: https://scan.botchain.ai/address/${CONTRACT_ADDRESS}`}
+            >
+              <span className="group-hover:underline underline-offset-2">Mainnet</span>
+              <ExternalLink className="w-3 h-3 opacity-60 group-hover:opacity-100 transition-opacity" />
+            </a>
             <span>•</span>
             <span>Client-Side Privacy</span>
           </div>

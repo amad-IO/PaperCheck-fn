@@ -2,8 +2,8 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Wallet, Menu, X } from 'lucide-react';
-import { getNetworkName } from '../lib/contract';
+import { Wallet, Menu, X, ExternalLink } from 'lucide-react';
+import { getNetworkName, getExplorerAddressUrl, CONTRACT_ADDRESS } from '../lib/contract';
 
 export default function Navbar({ activeTab, setActiveTab, walletState, connectWallet, disconnectWallet }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -128,10 +128,17 @@ export default function Navbar({ activeTab, setActiveTab, walletState, connectWa
           {/* Right Controls: Network & Wallet */}
           <div className="flex items-center gap-2 sm:gap-2.5">
             {/* Network Indicator Pill */}
-            <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-mono font-medium">
+            <a
+              href={`https://scan.botchain.ai/address/${CONTRACT_ADDRESS}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 hover:border-emerald-300 hover:bg-emerald-100/70 text-xs font-mono font-medium transition-colors cursor-pointer group"
+              title={`Lihat Smart Contract di Explorer: https://scan.botchain.ai/address/${CONTRACT_ADDRESS}`}
+            >
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span>{getNetworkName(walletState.chainId)}</span>
-            </div>
+              <span className="group-hover:underline underline-offset-2">Mainnet</span>
+              <ExternalLink className="w-3 h-3 opacity-40 group-hover:opacity-80 transition-opacity" />
+            </a>
 
             {/* Wallet Button (Desktop only: md:flex, hidden on mobile) */}
             <div className="hidden md:flex items-center">
@@ -258,10 +265,17 @@ export default function Navbar({ activeTab, setActiveTab, walletState, connectWa
             {/* Network Indicator Pill */}
             <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[10px] font-mono text-slate-500 px-1">
               <span>Network:</span>
-              <span className="font-semibold text-emerald-700 flex items-center gap-1">
+              <a
+                href={`https://scan.botchain.ai/address/${CONTRACT_ADDRESS}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold text-emerald-700 flex items-center gap-1 hover:underline underline-offset-2"
+                title={`Smart Contract: ${CONTRACT_ADDRESS}`}
+              >
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                {getNetworkName(walletState.chainId)}
-              </span>
+                Mainnet
+                <ExternalLink className="w-2.5 h-2.5 opacity-60 ml-0.5" />
+              </a>
             </div>
           </div>
         </>,

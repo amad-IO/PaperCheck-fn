@@ -2,16 +2,7 @@ import CONTRACT_ABI from './contractAbi.json';
 import { encodeFunctionData, createPublicClient, http, custom, defineChain } from 'viem';
 import { baseSepolia, sepolia, liskSepolia, arbitrumSepolia, polygonAmoy } from 'viem/chains';
 
-const contractAddress = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS ?? '';
-
-export const CONTRACT_ADDRESS = contractAddress;
-
-export function requireContractAddress() {
-  if (!CONTRACT_ADDRESS) {
-    throw new Error('NEXT_PUBLIC_CONTRACT_ADDRESS is not set. Add it to your .env file or deployment environment variables.');
-  }
-  return CONTRACT_ADDRESS;
-}
+export const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || '0xfF1181815F399144f9006cCB16e6778f8C61CFe3';
 
 export { CONTRACT_ABI };
 
@@ -47,12 +38,12 @@ export const bohrMainnet = defineChain({
  */
 export const KNOWN_CHAINS = {
   968: {
-    name: 'Bohr Testnet',
+    name: 'Testnet',
     explorer: 'https://scan.bohr.life',
     rpc: 'https://rpc.bohr.life',
   },
   677: {
-    name: 'Bohr Mainnet',
+    name: 'Mainnet',
     explorer: 'https://scan.botchain.ai',
     rpc: 'https://rpc.botchain.ai',
   },
@@ -84,26 +75,41 @@ export const KNOWN_CHAINS = {
 };
 
 export function getNetworkName(chainId) {
-  if (!chainId) return 'Bohr Testnet';
+  if (!chainId) return 'Mainnet';
   const known = KNOWN_CHAINS[Number(chainId)];
   if (known) return known.name;
   return `Chain #${chainId}`;
 }
 
+export function getRpcUrl(chainId) {
+  if (!chainId) return KNOWN_CHAINS[677].rpc;
+  const known = KNOWN_CHAINS[Number(chainId)];
+  if (known && known.rpc) return known.rpc;
+  return 'https://rpc.botchain.ai';
+}
+
+export const getNetworkRpcUrl = getRpcUrl;
+
 export function getExplorerTxUrl(txHash, chainId) {
   if (!txHash) return '#';
-  const known = KNOWN_CHAINS[Number(chainId)];
-  const rawBase = (known && known.explorer) ? known.explorer : 'https://scan.bohr.life';
+  const targetChainId = Number(chainId) || 677;
+  const known = KNOWN_CHAINS[targetChainId];
+  const rawBase = (known && known.explorer) ? known.explorer : 'https://scan.botchain.ai';
   const base = rawBase.replace(/\/+$/, '');
   return `${base}/tx/${txHash}`;
 }
 
 export function getExplorerAddressUrl(address, chainId) {
   if (!address) return '#';
-  const known = KNOWN_CHAINS[Number(chainId)];
-  const rawBase = (known && known.explorer) ? known.explorer : 'https://scan.bohr.life';
+  const targetChainId = Number(chainId) || 677;
+  const known = KNOWN_CHAINS[targetChainId];
+  const rawBase = (known && known.explorer) ? known.explorer : 'https://scan.botchain.ai';
   const base = rawBase.replace(/\/+$/, '');
   return `${base}/address/${address}`;
+}
+
+export function getContractAddressUrl(chainId) {
+  return getExplorerAddressUrl(CONTRACT_ADDRESS, chainId || 677);
 }
 
 /**
@@ -192,7 +198,6 @@ export async function registerManuscriptOnChain({
     throw new Error('No active wallet account selected. Please connect MetaMask.');
   }
 
-  const resolvedContractAddress = requireContractAddress();
   const formattedContentHash = formatBytes32(sha256);
   const formattedSimHash = formatSimHashBigInt(simHash);
 
@@ -216,7 +221,7 @@ export async function registerManuscriptOnChain({
     params: [
       {
         from: sender,
-        to: resolvedContractAddress,
+        to: CONTRACT_ADDRESS,
         data: callData
       }
     ]
@@ -256,7 +261,6 @@ export async function addParticipationOnChain({
   const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
   const sender = userAddress || accounts[0];
 
-  const resolvedContractAddress = requireContractAddress();
   const formattedHash = formatBytes32(contentHash);
 
   const callData = encodeFunctionData({
@@ -278,7 +282,7 @@ export async function addParticipationOnChain({
     params: [
       {
         from: sender,
-        to: resolvedContractAddress,
+        to: CONTRACT_ADDRESS,
         data: callData
       }
     ]
@@ -307,7 +311,6 @@ export async function batchAddParticipationOnChain({
   const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
   const sender = userAddress || accounts[0];
 
-  const resolvedContractAddress = requireContractAddress();
   const contentHashes = items.map(it => formatBytes32(it.sha256));
   const competitionNames = items.map(() => competitionName);
   const years = items.map(() => Number(year) || new Date().getFullYear());
@@ -333,7 +336,7 @@ export async function batchAddParticipationOnChain({
     params: [
       {
         from: sender,
-        to: resolvedContractAddress,
+        to: CONTRACT_ADDRESS,
         data: callData
       }
     ]
@@ -359,7 +362,6 @@ export async function disputeParticipationOnChain({
   const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
   const sender = userAddress || accounts[0];
 
-  const resolvedContractAddress = requireContractAddress();
   const callData = encodeFunctionData({
     abi: CONTRACT_ABI,
     functionName: 'disputeParticipation',
@@ -375,7 +377,7 @@ export async function disputeParticipationOnChain({
     params: [
       {
         from: sender,
-        to: resolvedContractAddress,
+        to: CONTRACT_ADDRESS,
         data: callData
       }
     ]
@@ -401,8 +403,8 @@ export const VIEM_CHAIN_MAP = {
 /**
  * Get Viem Public Client for reading from smart contract
  */
-export function getPublicClient(chainId = 968) {
-  const chainObj = VIEM_CHAIN_MAP[Number(chainId)] || bohrTestnet;
+export function getPublicClient(chainId = 677) {
+  const chainObj = VIEM_CHAIN_MAP[Number(chainId)] || bohrMainnet;
   return createPublicClient({
     chain: chainObj,
     transport: http()
@@ -414,9 +416,9 @@ export function getPublicClient(chainId = 968) {
  */
 export async function fetchManuscriptsFromChain({
   contractAddress = CONTRACT_ADDRESS,
-  chainId = 968
+  chainId = 677
 } = {}) {
-  const address = contractAddress || requireContractAddress();
+  const address = contractAddress || CONTRACT_ADDRESS;
   if (!address || address.length < 42 || address === '0x0000000000000000000000000000000000000000') {
     return [];
   }
@@ -540,9 +542,9 @@ export async function fetchManuscriptsFromChain({
 export async function fetchSingleManuscriptFromChain({
   contentHash,
   contractAddress = CONTRACT_ADDRESS,
-  chainId = 968
+  chainId = 677
 }) {
-  const address = contractAddress || requireContractAddress();
+  const address = contractAddress || CONTRACT_ADDRESS;
   if (!address || !contentHash) return null;
 
   const client = getPublicClient(chainId);
@@ -593,7 +595,7 @@ export async function fetchSingleManuscriptFromChain({
       } else if (m.simHash) {
         formattedSimHash = '0x' + BigInt(m.simHash).toString(16).padStart(16, '0');
       }
-    } catch (e) { }
+    } catch (e) {}
 
     return {
       contentHash: m.contentHash,

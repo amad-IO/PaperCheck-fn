@@ -125,7 +125,7 @@ export default function CekNaskahView({ showToast, walletState }) {
   };
 
   const handleViewExplorer = () => {
-    const chainId = walletState?.chainId || 968;
+    const chainId = walletState?.chainId || 677;
     if (inspectionResult?.manuscript?.txHash) {
       window.open(getExplorerTxUrl(inspectionResult.manuscript.txHash, chainId), '_blank');
       return;
