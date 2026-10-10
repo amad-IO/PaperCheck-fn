@@ -621,14 +621,14 @@ export default function Home() {
             <span>Decentralized Academic Manuscript Integrity</span>
           </div>
           <div className="flex items-center gap-4 text-[11px]">
+            <span>Supported by</span>
             <a
-              href={`https://scan.botchain.ai/address/${CONTRACT_ADDRESS}`}
+              href={`https://www.botchain.ai/en/`}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 text-slate-500 hover:text-[#ED7B46] transition-colors group cursor-pointer"
-              title={`Buka Contract di Explorer: https://scan.botchain.ai/address/${CONTRACT_ADDRESS}`}
             >
-              <span className="group-hover:underline underline-offset-2">Mainnet</span>
+              <span className="group-hover:underline underline-offset-2">Bot Chain</span>
               <ExternalLink className="w-3 h-3 opacity-60 group-hover:opacity-100 transition-opacity" />
             </a>
             <span>•</span>
